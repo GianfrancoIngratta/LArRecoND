@@ -184,13 +184,6 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     // Long integers for the MC IDs: vertex, unique and local trajectories
     std::vector<long> mcNuIdVect, mcIdVect, mcLocalIdVect;
 
-    // Vector of hits for the hit positions
-    IntVector sliceHitsSlice;
-    IntVector sliceHitsPfoId;
-    FloatVector sliceHitsX;
-    FloatVector sliceHitsY;
-    FloatVector sliceHitsZ;
-
     // Vectors for track fit outputs
     IntVector trkpointsVectTF;
     FloatVector startXVectTF, startYVectTF, startZVectTF;
@@ -238,13 +231,6 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
             LArPfoHelper::GetCaloHits(pPfo, pandora::TPC_3D, hits);
             LArPfoHelper::GetIsolatedCaloHits(pPfo, pandora::TPC_3D, hits);
 
-            for ( const pandora::CaloHit* const pCaloHit : hits ) {
-                sliceHitsPfoId.emplace_back( thisPfoId );
-                    sliceHitsSlice.emplace_back( sliceId );
-                    sliceHitsX.emplace_back( pCaloHit->GetPositionVector().GetX() );
-                    sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
-                    sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
-            }
         }
 
         // Get (first) root vertex
@@ -376,15 +362,6 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 // Define isShower based on track score
                 const int isShower = (trackScore >= m_minTrackScore) ? 0 : 1;
                 isShowerVect.emplace_back(isShower);
-                // Get the track score for the PFO
-                // as in https://github.com/PandoraPFA/larpandora/blob/develop/larpandora/LArPandoraInterface/LArPandoraOutput.cxx#L325 but with TrackScore as the property
-                const auto& properties = pPfo->GetPropertiesMap();
-                float trackScore = -1.;
-                const auto iterTrackScore(properties.find("TrackScore"));
-                if ( iterTrackScore != properties.end() ){
-                    trackScore = iterTrackScore->second;
-                }
-                trackScoreVect.emplace_back( trackScore );
 
                 // Cluster vertex, end and direction (from PCA)
                 startXVect.emplace_back(vertex.GetX());
@@ -650,12 +627,6 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPx", &mcNuPxVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPy", &mcNuPyVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPz", &mcNuPzVect));
-
-    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsSlice", &sliceHitsSlice));
-    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsPfoId", &sliceHitsPfoId));
-    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsX", &sliceHitsX));
-    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsY", &sliceHitsY));
-    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsZ", &sliceHitsZ));
 
     PANDORA_MONITORING_API(FillTree(this->GetPandora(), m_analysisTreeName.c_str()));
 }
