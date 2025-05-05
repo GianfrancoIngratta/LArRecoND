@@ -380,6 +380,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 const int isShower = (trackScore >= m_minTrackScore) ? 0 : 1;
                 isShowerVect.emplace_back(isShower);
 
+                isRecoPrimaryVect.emplace_back(isRecoPrimary);
+
                 // Cluster vertex, end and direction (from PCA)
                 startXVect.emplace_back(vertex.GetX());
                 startYVect.emplace_back(vertex.GetY());
