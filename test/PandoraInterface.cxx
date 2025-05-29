@@ -341,13 +341,19 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
 
         ndsptree->GetEntry(iEvt);
 
-	// Stop processing the event if we have too many space points: reco takes too long
-	const int nSP = larsp->m_x->size();
-	if (parameters.m_maxMergedVoxels > 0 && nSP > parameters.m_maxMergedVoxels)
+        // Stop processing the event if we have too many space points: reco takes too long
+        const int nSP = larsp->m_x->size();
+        if (parameters.m_maxMergedVoxels > 0 && nSP > parameters.m_maxMergedVoxels)
         {
-	    std::cout << "SKIPPING EVENT: number of space points " << nSP << " > " << parameters.m_maxMergedVoxels << std::endl;
-	    continue;
-	}
+            std::cout << "SKIPPING EVENT: number of space points " << nSP << " > " << parameters.m_maxMergedVoxels << std::endl;
+            continue;
+        }
+        // Also stop processing the event if it has too few hits (we can't make CaloHits for essentially empty events)
+        if (nSP < parameters.m_minNSpacePoints)
+        {
+            std::cout << "SKIPPING EVENT: number of space points " << nSP << " < " << parameters.m_minNSpacePoints << std::endl;
+            continue;
+        }
 
         // Some truth information first
         if (parameters.m_dataFormat == Parameters::LArNDFormat::SPMC)
@@ -411,8 +417,8 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
                 LArSPMC *larspmc = dynamic_cast<LArSPMC *>(larsp.get());
                 const std::vector<float> mcContribs = (*larspmc->m_hit_packetFrac)[isp];
                 const int biggestContribIndex = std::distance(mcContribs.begin(), std::max_element(mcContribs.begin(), mcContribs.end()));
-		const std::vector<long> hitPartIDVect = (*larspmc->m_hit_particleID)[isp];
-		trackID = (hitPartIDVect.size() > biggestContribIndex) ? hitPartIDVect[biggestContribIndex] : 0;
+                const std::vector<long> hitPartIDVect = (*larspmc->m_hit_particleID)[isp];
+                trackID = (hitPartIDVect.size() > biggestContribIndex) ? hitPartIDVect[biggestContribIndex] : 0;
 
                 // Due to the merging of hits, the contributions can sometimes add up to more than 1.
                 // Normalise first
@@ -1773,7 +1779,7 @@ bool ParseCommandLine(int argc, char *argv[], Parameters &parameters)
     std::string geomVolName("");
     std::string sensDetName("");
 
-    while ((cOpt = getopt(argc, argv, "r:i:e:k:f:g:t:v:d:n:s:j:w:m:c:MpNh")) != -1)
+    while ((cOpt = getopt(argc, argv, "r:i:e:k:f:g:t:v:d:n:s:j:w:m:b:c:MpNh")) != -1)
     {
         switch (cOpt)
         {
@@ -1825,6 +1831,9 @@ bool ParseCommandLine(int argc, char *argv[], Parameters &parameters)
             case 'm':
                 parameters.m_maxMergedVoxels = atoi(optarg);
                 break;
+            case 'b':
+                parameters.m_minNSpacePoints = atoi(optarg);
+                break;
             case 'c':
                 parameters.m_minVoxelMipEquivE = atof(optarg);
                 break;
@@ -1875,6 +1884,7 @@ bool PrintOptions()
               << "    -w width               (optional) [Voxel bin width (cm), default = 0.4 cm]" << std::endl
               << "    -m maxMergedVoxels     (optional) [Skip events that have N(space points) or N(merged voxels) > maxMergedVoxels (default = no events skipped)]"
               << std::endl
+              << "    -b minNSpacePoints     (optional) [Skip events that have N(space points) < minNSpacePoints (default < 2)]" << std::endl
               << "    -c minMipEquivE        (optional) [Minimum MIP equivalent energy, default = 0.3]" << std::endl
               << std::endl;
 
