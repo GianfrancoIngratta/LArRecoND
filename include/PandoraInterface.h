@@ -88,6 +88,7 @@ public:
 
     int m_nEventsToSkip;       ///< The number of events to skip
     int m_maxMergedVoxels;     ///< The max number of merged voxels to process (default all)
+    int m_minNSpacePoints;     ///< The minimum number of space points for processing an event (default = 2)
     float m_minVoxelMipEquivE; ///< The minimum required voxel equivalent MIP energy (default = 0.3)
 
     bool m_use3D;     ///< Create 3D LArCaloHits
@@ -126,6 +127,7 @@ inline Parameters::Parameters() :
     m_printOverallRecoStatus(false),
     m_nEventsToSkip(0),
     m_maxMergedVoxels(-1),
+    m_minNSpacePoints(2),
     m_minVoxelMipEquivE(0.3f),
     m_use3D(true),
     m_useLArTPC(true),
