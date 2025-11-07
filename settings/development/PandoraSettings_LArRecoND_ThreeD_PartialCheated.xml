@@ -14,43 +14,27 @@
         <CurrentCaloHitListReplacement>CaloHitList2D</CurrentCaloHitListReplacement>
     </algorithm>
 
-    <!-- EVENT DISPLAY
     <algorithm type = "LArVisualMonitoring">
         <CaloHitListNames>CaloHitListU CaloHitListV CaloHitListW CaloHitList3D</CaloHitListNames>
         <ShowDetector>true</ShowDetector>
     </algorithm>
-    -->
 
     <algorithm type = "LArMasterThreeD">
-        <CRSettingsFile>PandoraSettings_Cosmic_Standard_ThreeD.xml</CRSettingsFile>
+        <CRSettingsFile>PandoraSettings_LArRecoND_RockMuon_Cheat.xml</CRSettingsFile>
         <NuSettingsFile>PandoraSettings_Neutrino_ThreeD.xml</NuSettingsFile>
-        <SlicingSettingsFile>PandoraSettings_Slicing_ThreeD.xml</SlicingSettingsFile>
+        <SlicingSettingsFile>PandoraSettings_Slicing_ThreeD_Cheated.xml</SlicingSettingsFile>
         <StitchingTools>
-          <tool type = "LArStitchingCosmicRayMerging">
-            <ThreeDStitchingMode>true</ThreeDStitchingMode>
-            <ApplyZStitching>true</ApplyZStitching>
-            <MaxXYdisplacementPfoZmatching>2</MaxXYdisplacementPfoZmatching>
-            <MaxZdistancePfoZmatching>10</MaxZdistancePfoZmatching>
-            <MinNCaloHits3D>10</MinNCaloHits3D>
-          </tool>
-          <tool type = "LArStitchingCosmicRayMerging">
-            <ThreeDStitchingMode>false</ThreeDStitchingMode>
-            <ApplyZStitching>true</ApplyZStitching>
-            <MaxXYdisplacementPfoZmatching>2</MaxXYdisplacementPfoZmatching>
-            <MaxZdistancePfoZmatching>10</MaxZdistancePfoZmatching>
-            <MinNCaloHits3D>10</MinNCaloHits3D>
-          </tool>
+            <tool type = "LArCheatingStitching" />
         </StitchingTools>
         <CosmicRayTaggingTools>
-            <tool type = "LArCosmicRayTagging">
-	      <CutMode>cautious</CutMode>
-              <TagRockMuons>true</TagRockMuons>
-	    </tool>
+            <tool type = "LArCheatingRockMuonTagging"/>
         </CosmicRayTaggingTools>
         <SliceIdTools>
             <tool type = "LArSimpleNeutrinoId"/>
         </SliceIdTools>
         <InputHitListName>Input</InputHitListName>
+        <InputMCParticleListName>Input</InputMCParticleListName>
+        <PassMCParticlesToWorkerInstances>true</PassMCParticlesToWorkerInstances>
         <RecreatedPfoListName>RecreatedPfos</RecreatedPfoListName>
         <RecreatedClusterListName>RecreatedClusters</RecreatedClusterListName>
         <RecreatedVertexListName>RecreatedVertices</RecreatedVertexListName>
@@ -65,38 +49,38 @@
     </algorithm>
     -->
 
-    <algorithm type = "LArHierarchyAnalysis">
+    <!-- <algorithm type = "LArHierarchyAnalysis">
         <EventFileName>LArRecoNDInput.root</EventFileName>
-	<EventTreeName>events</EventTreeName>
-	<EventLeafName>event</EventLeafName>
-	<RunLeafName>run</RunLeafName>
-	<SubRunLeafName>subrun</SubRunLeafName>
-	<UnixTimeLeafName>unix_ts</UnixTimeLeafName>
-	<StartTimeLeafName>event_start_t</StartTimeLeafName>
-	<EndTimeLeafName>event_end_t</EndTimeLeafName>
-	<MCIdLeafName>mcp_id</MCIdLeafName>
-	<MCLocalIdLeafName>mcp_idLocal</MCLocalIdLeafName>
-	<EventsToSkip>0</EventsToSkip>
-	<MinHitsToSkip>2</MinHitsToSkip>
-	<CaloHitListName>CaloHitList2D</CaloHitListName>
-	<PfoListName>RecreatedPfos</PfoListName>
+        <EventTreeName>events</EventTreeName>
+        <EventLeafName>event</EventLeafName>
+        <RunLeafName>run</RunLeafName>
+        <SubRunLeafName>subrun</SubRunLeafName>
+        <UnixTimeLeafName>unix_ts</UnixTimeLeafName>
+        <UnixTimeUsecLeafName>unix_ts_usec</UnixTimeUsecLeafName>
+        <StartTimeLeafName>event_start_t</StartTimeLeafName>
+        <EndTimeLeafName>event_end_t</EndTimeLeafName>
+        <MCIdLeafName>mcp_id</MCIdLeafName>
+        <MCLocalIdLeafName>mcp_idLocal</MCLocalIdLeafName>
+        <EventsToSkip>0</EventsToSkip>
+        <MinHitsToSkip>2</MinHitsToSkip>
+        <CaloHitListName>CaloHitList2D</CaloHitListName>
+        <PfoListName>RecreatedPfos</PfoListName>
         <AnalysisFileName>LArRecoND.root</AnalysisFileName>
         <AnalysisTreeName>LArRecoND</AnalysisTreeName>
         <FoldToPrimaries>false</FoldToPrimaries>
         <FoldToLeadingShowers>true</FoldToLeadingShowers>
-	<FoldDynamic>false</FoldDynamic>
+        <FoldDynamic>false</FoldDynamic>
         <MinPurity>0.5</MinPurity>
         <MinCompleteness>0.1</MinCompleteness>
         <MinRecoHits>15</MinRecoHits>
         <MinRecoHitsPerView>5</MinRecoHitsPerView>
         <MinRecoGoodViews>2</MinRecoGoodViews>
         <RemoveRecoNeutrons>true</RemoveRecoNeutrons>
-	<SelectRecoHits>true</SelectRecoHits>
-    </algorithm>
+        <SelectRecoHits>true</SelectRecoHits>
+    </algorithm> -->
 
 <!-- LArContent hierarchy tools MC and event-level information-->
-<!--
-    <algorithm type = "LArHierarchyValidation">
+    <!-- <algorithm type = "LArHierarchyValidation">
         <CaloHitListName>CaloHitList2D</CaloHitListName>
         <PfoListName>RecreatedPfos</PfoListName>
         <Detector>dune_nd</Detector>
@@ -115,9 +99,8 @@
         <MinRecoHitsPerView>5</MinRecoHitsPerView>
         <MinRecoGoodViews>2</MinRecoGoodViews>
         <RemoveRecoNeutrons>true</RemoveRecoNeutrons>
-	<SelectRecoHits>true</SelectRecoHits>
-    </algorithm>
--->
+        <SelectRecoHits>true</SelectRecoHits>
+    </algorithm> -->
 
 <!-- Use old single neutrino event validation
     <algorithm type = "LArNeutrinoEventValidation">
@@ -133,12 +116,9 @@
     </algorithm>
 -->
 
-    <!-- EVENT DISPLAY
     <algorithm type = "LArVisualMonitoring">
         <ShowCurrentPfos>true</ShowCurrentPfos>
         <ShowDetector>true</ShowDetector>
     </algorithm>
-    -->
 
 </pandora>
-
