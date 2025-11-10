@@ -32,6 +32,12 @@ void CheatingStitchingTool::Run(const MasterAlgorithm *const pAlgorithm, const P
     if (this->GetPandora().GetGeometry()->GetLArTPCMap().size() < 2)
         return;
 
+    if(pMultiPfoList->size()==0)
+      std::cout << "workaround to use the variable and make the code compile\n";
+
+    if(stitchedPfosToX0Map.size()==0)
+      std::cout << "workaround to use the variable and make the code compile\n";
+
     if (pfoToLArTPCMap.empty())
         throw StatusCodeException(STATUS_CODE_NOT_FOUND);
 
