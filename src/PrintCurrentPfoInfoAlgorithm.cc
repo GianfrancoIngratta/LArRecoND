@@ -7,16 +7,25 @@
  */
 
 #include "Pandora/AlgorithmHeaders.h"
+#include "Helpers/MCParticleHelper.h"
+#include "larpandoracontent/LArObjects/LArMCParticle.h"
 
 #include "PreProcessingThreeDAlgorithm.h"
 
 #include "larpandoracontent/LArHelpers/LArClusterHelper.h"
 #include "larpandoracontent/LArObjects/LArCaloHit.h"
 #include "larpandoracontent/LArHelpers/LArPfoHelper.h"
+#include "larpandoracontent/LArHelpers/LArGeometryHelper.h"
+#include "larpandoracontent/LArHelpers/LArMonitoringHelper.h"
+
+#include "Objects/MCParticle.h"
 #include <fstream>
 #include <iterator>
+#include <type_traits>
 
 #include "PrintCurrentPfoInfoAlgorithm.h"
+#include "larpandoracontent/LArMonitoring/MCParticleMonitoringAlgorithm.h"
+#include "larpandoracontent/LArObjects/LArTrackPfo.h"
 
 using namespace pandora;
 
@@ -31,16 +40,20 @@ PrintCurrentPfoInfoAlgorithm::PrintCurrentPfoInfoAlgorithm() :
   m_inputCaloHitListVName{""},
   m_inputCaloHitListWName{""},
   m_inputCaloHitList2DName{""},
+  m_mcCaloHitListName{""},
   // clusters info
   m_inputClusterListName3D{""},
   m_inputClusterListNameU{""},
   m_inputClusterListNameV{""},
-  m_inputClusterListNameW{""}
+  m_inputClusterListNameW{""},
+  // MC particles
+  m_mcParticleListNames{""}
 {
 }
 
   //------------------------------------------------------------------------------------------------------------------------------------------
 std::ofstream PrintCurrentPfoInfoAlgorithm::pfoInfoOutputFile("pfos_info.txt");
+std::ofstream PrintCurrentPfoInfoAlgorithm::MCpfoInfoOutputFile("mc_pfos_info.txt");
 
 std::map<std::string, int> PrintCurrentPfoInfoAlgorithm::AlgoExecutionCount;
 
@@ -92,6 +105,15 @@ StatusCode PrintCurrentPfoInfoAlgorithm::Run()
 
   PANDORA_RETURN_RESULT_IF_AND_IF(STATUS_CODE_SUCCESS, STATUS_CODE_NOT_INITIALIZED, !=, PandoraContentApi::GetList(*this, m_inputClusterListNameW, pClusterListW));
   PrintClusterListInfo(pClusterListW, m_inputClusterListNameW, m_inputStageName);
+  
+  const MCParticleList *pMCParticleList = nullptr;
+  PANDORA_RETURN_RESULT_IF_AND_IF(STATUS_CODE_SUCCESS, STATUS_CODE_NOT_INITIALIZED, !=, PandoraContentApi::GetList(*this, m_mcParticleListNames, pMCParticleList));
+
+  const CaloHitList *pMCCaloHitList = nullptr;
+  PANDORA_RETURN_RESULT_IF_AND_IF(STATUS_CODE_SUCCESS, STATUS_CODE_NOT_INITIALIZED, !=, PandoraContentApi::GetList(*this, m_mcCaloHitListName, pMCCaloHitList));
+
+  // PrintMCparticlesInfo(pMCParticleList, pMCCaloHitList);
+  PrintMCparticlesInfo(pMCParticleList);
 
   // print pfo info --------------------------------------------------------------------
   for (unsigned int i = 0; i < m_inputPfoListNames.size(); ++i)
@@ -276,6 +298,129 @@ void PrintCurrentPfoInfoAlgorithm::PrintClusterListInfo(const ClusterList*& pClu
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
+StatusCode PrintCurrentPfoInfoAlgorithm::PrintMCparticlesInfo(const MCParticleList*& pMCParticleList) const
+{
+    
+    if(!pMCParticleList) return STATUS_CODE_NOT_INITIALIZED;
+
+    for (const MCParticle* pfo : *pMCParticleList)
+    {
+      auto vertex = pfo->GetVertex();
+      auto end_point = pfo->GetEndpoint();
+      auto uid = pfo->GetUid();
+
+      auto vertex_x = vertex.GetX();
+      auto vertex_y = vertex.GetY();
+      auto vertex_z = vertex.GetZ();
+      auto end_point_x = end_point.GetX();
+      auto end_point_y = end_point.GetY();
+      auto end_point_z = end_point.GetZ();
+
+      auto pdg = pfo->GetParticleId();
+      if(abs(pdg)!=13) continue;
+
+      auto parents = pfo->GetParentList();
+      const MCParticle* parent = (parents.size()>0)? parents.front() : nullptr;
+      
+      if(abs(parent->GetParticleId())!=14) continue;
+      auto daughters = pfo->GetDaughterList();
+      auto nof_daughters = daughters.size();
+
+      MCpfoInfoOutputFile
+           << "{\"STAGE\" : " << "\"" << m_inputStageName << "\"" 
+           << ", \"CallNumber\" : " << "\"" <<AlgoExecutionCount[m_inputStageName] << "\""
+           << ", \"pfo\" : " << "\"" << pfo << "\""
+           << ", \"uid\" : " << "\"" << uid << "\""
+           << ", \"pdg\" : " << pdg 
+           << ", \"parent\" : " << "\"" << parent << "\""
+           << ", \"nof_daughters\" : " << nof_daughters 
+           << ", \"vertex_x\" : " << vertex_x 
+           << ", \"vertex_y\" : " << vertex_y 
+           << ", \"vertex_z\" : " << vertex_z 
+           << ", \"end_point_x\" : " << end_point_x 
+           << ", \"end_point_y\" : " << end_point_y 
+           << ", \"end_point_z\" : " << end_point_z 
+           << "},\n";
+    }
+    return STATUS_CODE_SUCCESS;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------
+StatusCode PrintCurrentPfoInfoAlgorithm::PrintMCparticlesInfo(const MCParticleList*& pMCParticleList, const CaloHitList*& pMCCaloHitList) const
+{
+    if(!pMCParticleList) return STATUS_CODE_NOT_INITIALIZED;
+    if(!pMCCaloHitList) return STATUS_CODE_NOT_INITIALIZED;
+    
+    LArMCParticleHelper::PrimaryParameters parameters;
+    parameters.m_minHitSharingFraction = 0.f;
+
+    LArMCParticleHelper::MCContributionMap nuMCParticlesToGoodHitsMap;
+    LArMCParticleHelper::MCContributionMap beamMCParticlesToGoodHitsMap;
+    LArMCParticleHelper::MCContributionMap crMCParticlesToGoodHitsMap;
+
+    LArMCParticleHelper::SelectReconstructableMCParticles(
+            pMCParticleList, pMCCaloHitList, parameters, LArMCParticleHelper::IsBeamNeutrinoFinalState, nuMCParticlesToGoodHitsMap);
+
+    LArMCParticleHelper::SelectReconstructableMCParticles(
+            pMCParticleList, pMCCaloHitList, parameters, LArMCParticleHelper::IsBeamParticle, beamMCParticlesToGoodHitsMap);
+    
+    LArMCParticleHelper::SelectReconstructableMCParticles(
+            pMCParticleList, pMCCaloHitList, parameters, LArMCParticleHelper::IsCosmicRay, crMCParticlesToGoodHitsMap);
+
+    std::cout << "MAP SIZES : " 
+      << nuMCParticlesToGoodHitsMap.size()
+      << " " << beamMCParticlesToGoodHitsMap.size() << " "
+      << crMCParticlesToGoodHitsMap.size()
+      << " " << pMCParticleList->size()
+      << " " << pMCCaloHitList->size()
+      << "\n";
+
+    if (!nuMCParticlesToGoodHitsMap.empty())
+    {
+        // std::cout << std::endl << "BeamNeutrinos: " << std::endl;
+        this->PrintPrimaryMCParticles(nuMCParticlesToGoodHitsMap);
+    }
+
+    if (!beamMCParticlesToGoodHitsMap.empty())
+    {
+        // std::cout << std::endl << "BeamParticles: " << std::endl;
+        this->PrintPrimaryMCParticles(beamMCParticlesToGoodHitsMap);
+    }
+
+    if (!crMCParticlesToGoodHitsMap.empty())
+    {
+        // std::cout << std::endl << "CosmicRays: " << std::endl;
+        this->PrintPrimaryMCParticles(crMCParticlesToGoodHitsMap);
+    } 
+    return STATUS_CODE_SUCCESS; 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------
+void PrintCurrentPfoInfoAlgorithm::PrintPrimaryMCParticles(const LArMCParticleHelper::MCContributionMap &mcContributionMap) const
+{
+    MCParticleVector mcPrimaryVector;
+    LArMonitoringHelper::GetOrderedMCParticleVector({mcContributionMap}, mcPrimaryVector);
+
+    unsigned int index(0);
+
+    for (const MCParticle *const pMCPrimary : mcPrimaryVector)
+    {
+      std::cout << "mc particle " << pMCPrimary << "\n";
+      const CaloHitList &caloHitList(mcContributionMap.at(pMCPrimary));
+      // printing
+      MCpfoInfoOutputFile
+           << "{\"STAGE\" : " << "\"" << m_inputStageName << "\"" 
+           << ", \"CallNumber\" : " << "\"" <<AlgoExecutionCount[m_inputStageName] << "\""
+           << ", \"pMCPrimary\" : " << "\"" << pMCPrimary << "\""
+           << "}, \n";
+
+      LArMCParticleHelper::MCRelationMap mcToPrimaryMCMap;
+      LArMCParticleHelper::CaloHitToMCMap caloHitToPrimaryMCMap;
+      LArMCParticleHelper::MCContributionMap mcToTrueHitListMap;
+      LArMCParticleHelper::GetMCParticleToCaloHitMatches(&caloHitList, mcToPrimaryMCMap, caloHitToPrimaryMCMap, mcToTrueHitListMap);
+      // this->PrintMCParticle(pMCPrimary, mcToTrueHitListMap, 1);
+    }
+    ++index;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------
 
 StatusCode PrintCurrentPfoInfoAlgorithm::ReadSettings(const TiXmlHandle xmlHandle)
 {
@@ -312,6 +457,11 @@ PANDORA_RETURN_RESULT_IF_AND_IF(
   PANDORA_RETURN_RESULT_IF_AND_IF(
         STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadVectorOfValues(xmlHandle, "InputVertexListNames", m_inputVertexListNames));
 
+  // MC particles 
+  PANDORA_RETURN_RESULT_IF_AND_IF(
+      STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "MCParticleListNames", m_mcParticleListNames));
+  PANDORA_RETURN_RESULT_IF_AND_IF(
+      STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "MCCaloHitListName", m_mcCaloHitListName));
 
 
   return STATUS_CODE_SUCCESS;

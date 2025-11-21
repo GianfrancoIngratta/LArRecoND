@@ -27,6 +27,7 @@
 #include "larpandoracontent/LArPlugins/LArRotationalTransformationPlugin.h"
 
 #include "larpandoracontent/LArUtility/PfoMopUpBaseAlgorithm.h"
+#include <iterator>
 
 #ifdef LIBTORCH_DL
 #include "larpandoradlcontent/LArDLContent.h"
@@ -41,6 +42,7 @@ StatusCode MasterThreeDAlgorithm::Run()
 {
 
     std::cout << "Should run slicing? " << m_shouldRunSlicing << std::endl;
+    std::cout << "m_passMCParticlesToWorkerInstances ? " << m_passMCParticlesToWorkerInstances << std::endl;
 
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->Reset());
 
@@ -54,13 +56,17 @@ StatusCode MasterThreeDAlgorithm::Run()
     VolumeIdToHitListMap volumeIdToHitListMap;
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->GetVolumeIdToHitListMap(volumeIdToHitListMap));
 
+    std::cout << "volumeIdToHitListMap.empty(): " << volumeIdToHitListMap.empty() << "\n";
+
     if (m_shouldRunAllHitsCosmicReco)
     {
         PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->RunCosmicRayReconstruction(volumeIdToHitListMap));
 
+        std::cout << "volumeIdToHitListMap.empty(): " << volumeIdToHitListMap.empty() << "\n";
         PfoToLArTPCMap pfoToLArTPCMap;
         PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->RecreateCosmicRayPfos(pfoToLArTPCMap));
 
+        std::cout << "pfoToLArTPCMap.empty(): " << pfoToLArTPCMap.empty() << "\n";
         if (m_shouldRunStitching){
           PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->StitchCosmicRayPfos(pfoToLArTPCMap, stitchedPfosToX0Map));
         }
@@ -402,6 +408,7 @@ StatusCode MasterThreeDAlgorithm::InitializeWorkerInstances()
             m_crWorkerInstances.push_back(
                 this->CreateWorkerInstance(*(mapEntry.second), gapList, m_crSettingsFile, "CRWorkerInstance" + std::to_string(volumeId)));
         }
+        std::cout << "m_crWorkerInstances.size() " << m_crWorkerInstances.size() << "\n";
 
         if (m_shouldRunSlicing)
             m_pSlicingWorkerInstance = this->CreateWorkerInstance(larTPCMap, gapList, m_slicingSettingsFile, "SlicingWorker");
@@ -411,6 +418,7 @@ StatusCode MasterThreeDAlgorithm::InitializeWorkerInstances()
 
         if (m_shouldRunCosmicRecoOption)
             m_pSliceCRWorkerInstance = this->CreateWorkerInstance(larTPCMap, gapList, m_crSettingsFile, "SliceCRWorker");
+        std::cout << "m_pSliceCRWorkerInstance is nullptr ? " << (m_pSliceCRWorkerInstance==nullptr) << "\n";
     }
     catch (const StatusCodeException &statusCodeException)
     {

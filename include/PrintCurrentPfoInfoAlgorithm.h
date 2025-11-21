@@ -9,6 +9,7 @@
 #define LAR_PRINT_CURRENT_PFO_INFO_ALGORITHM_H 1
 
 #include "Pandora/Algorithm.h"
+#include "larpandoracontent/LArHelpers/LArMCParticleHelper.h"
 
 namespace lar_content
 {
@@ -26,6 +27,7 @@ namespace lar_content
       PrintCurrentPfoInfoAlgorithm();
       static std::map<std::string, int> AlgoExecutionCount;
       static std::ofstream pfoInfoOutputFile;
+      static std::ofstream MCpfoInfoOutputFile;
     
     private:
 
@@ -33,6 +35,9 @@ namespace lar_content
       void PrintCaloHitsInfo(const pandora::CaloHitList *& pCaloHitList, std::string HitsName, std::string STAGE);
       void PrintClusterListInfo(const pandora::ClusterList *& pClusterList, std::string clusterName, std::string STAGE);
       void PrintPfoInfo(const pandora::ParticleFlowObject *& pPfo, std::string STAGE, std::string LIST_NAME);
+      pandora::StatusCode PrintMCparticlesInfo(const pandora::MCParticleList*& pMCParticleList, const pandora::CaloHitList*& pMCCaloHitList) const;
+      pandora::StatusCode PrintMCparticlesInfo(const pandora::MCParticleList*& pMCParticleList ) const;
+      void PrintPrimaryMCParticles(const LArMCParticleHelper::MCContributionMap &mcContributionMap) const;
       pandora::StatusCode ReadSettings(const pandora::TiXmlHandle xmlHandle);
 
       std::string m_inputStageName;                 ///< Name of the stage at which the printing is called
@@ -44,11 +49,14 @@ namespace lar_content
       std::string m_inputCaloHitListVName;
       std::string m_inputCaloHitListWName;
       std::string m_inputCaloHitList2DName;
+      std::string m_mcCaloHitListName;
       // clusters
       std::string m_inputClusterListName3D;
       std::string m_inputClusterListNameU;
       std::string m_inputClusterListNameV;
       std::string m_inputClusterListNameW;
+      // MC particles
+      std::string m_mcParticleListNames;
   };                                    
 
 } // namespace lar_content
