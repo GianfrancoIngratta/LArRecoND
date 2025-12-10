@@ -6,6 +6,7 @@
 #include "TH1D.h"
 
 // C++ includes
+#include <cstdint>
 #include <iostream>
 #include <vector>
 
@@ -167,7 +168,7 @@ void rootToRootConversion(
     std::vector<float> y;
     std::vector<float> z;
     std::vector<float> ts;
-    std::vector<ULong_t> io_group;
+    std::vector<uint8_t> io_group;
     std::vector<float> E;
     std::vector<float> charge;
   

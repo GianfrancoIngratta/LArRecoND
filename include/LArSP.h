@@ -6,6 +6,7 @@
  *
  *  $Log: $
  */
+#include <cstdint>
 #ifndef PANDORA_LAR_SP_H
 #define PANDORA_LAR_SP_H 1
 
@@ -63,7 +64,7 @@ public:
     std::vector<float> *m_y = nullptr;
     std::vector<float> *m_z = nullptr;
     std::vector<float> *m_ts = nullptr;
-    std::vector<ULong_t> *m_io_group = nullptr;
+    std::vector<uint8_t> *m_io_group = nullptr;
     std::vector<float> *m_charge = nullptr;
     std::vector<float> *m_E = nullptr;
 
