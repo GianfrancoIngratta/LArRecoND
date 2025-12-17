@@ -66,6 +66,8 @@ public:
     std::vector<float> *m_ts = nullptr;
     std::vector<uint8_t> *m_io_group = nullptr;
     std::vector<uint8_t> *m_io_channel = nullptr;
+    std::vector<uint8_t> *m_chip_id = nullptr;
+    std::vector<uint8_t> *m_channel_id = nullptr;
     std::vector<float> *m_charge = nullptr;
     std::vector<float> *m_E = nullptr;
 
@@ -81,6 +83,8 @@ public:
     TBranch *m_b_ts = nullptr;
     TBranch *m_b_io_group = nullptr;
     TBranch *m_b_io_channel = nullptr;
+    TBranch *m_b_chip_id = nullptr;
+    TBranch *m_b_channel_id = nullptr;
     TBranch *m_b_charge = nullptr;
     TBranch *m_b_E = nullptr;
 };
@@ -152,6 +156,8 @@ void LArSP::Init(TTree *tree)
     m_fChain->SetBranchAddress("ts", &m_ts, &m_b_ts);
     m_fChain->SetBranchAddress("io_group", &m_io_group, &m_b_io_group);
     m_fChain->SetBranchAddress("io_channel", &m_io_channel, &m_b_io_channel);
+    m_fChain->SetBranchAddress("chip_id", &m_chip_id, &m_b_chip_id);
+    m_fChain->SetBranchAddress("channel_id", &m_channel_id, &m_b_channel_id);
     m_fChain->SetBranchAddress("charge", &m_charge, &m_b_charge);
     m_fChain->SetBranchAddress("E", &m_E, &m_b_E);
 }

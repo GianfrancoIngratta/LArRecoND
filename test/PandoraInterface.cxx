@@ -375,11 +375,15 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
             const float voxelE = (*larsp->m_charge)[isp];
             const float voxel_io_group = (*larsp->m_io_group)[isp];
             const float voxel_io_channel = (*larsp->m_io_channel)[isp];
+            const float voxel_chip_id = (*larsp->m_chip_id)[isp];
+            const float voxel_channel_id = (*larsp->m_channel_id)[isp];
             std::cout << voxelX 
                       << ", " << voxelY 
                       << ", " << voxelZ 
                       << ", " << voxel_io_group 
                       << ", " << voxel_io_channel 
+                      << ", " << voxel_channel_id 
+                      << ", " << voxel_chip_id 
                       << "\n";
 
             // Skip this hit if its coordinates or energy are NaNs
