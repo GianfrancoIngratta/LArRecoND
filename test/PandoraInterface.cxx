@@ -59,6 +59,39 @@
 using namespace pandora;
 using namespace lar_nd_reco;
 
+int get_stupid_conversion(const int io_group)
+{
+  // from group_io to tpc_id
+  if(1 == io_group)
+  {
+    return 7;
+  }else if (2 == io_group)
+  {
+    return 6;
+  }else if (3 == io_group)
+  {
+    return 5;
+  }else if (4 == io_group)
+  {
+    return 4;
+  }else if (5 == io_group)
+  {
+    return 3;
+  }else if (6 == io_group)
+  {
+    return 2;
+  }else if (7 == io_group)
+  {
+    return 1;
+  }else if (8 == io_group)
+  {
+    return 0;
+  }else
+  {
+    return 0;
+  }
+}
+
 int main(int argc, char *argv[])
 {
     int errorNo(0);
@@ -374,17 +407,9 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
             const float voxelZ = (*larsp->m_z)[isp];
             const float voxelE = (*larsp->m_charge)[isp];
             const float voxel_io_group = (*larsp->m_io_group)[isp];
-            const float voxel_io_channel = (*larsp->m_io_channel)[isp];
-            const float voxel_chip_id = (*larsp->m_chip_id)[isp];
-            const float voxel_channel_id = (*larsp->m_channel_id)[isp];
-            std::cout << voxelX 
-                      << ", " << voxelY 
-                      << ", " << voxelZ 
-                      << ", " << voxel_io_group 
-                      << ", " << voxel_io_channel 
-                      << ", " << voxel_channel_id 
-                      << ", " << voxel_chip_id 
-                      << "\n";
+            // const float voxel_io_channel = (*larsp->m_io_channel)[isp];
+            // const float voxel_chip_id = (*larsp->m_chip_id)[isp];
+            // const float voxel_channel_id = (*larsp->m_channel_id)[isp];
 
             // Skip this hit if its coordinates or energy are NaNs
             if (std::isnan(voxelX) || std::isnan(voxelY) || std::isnan(voxelZ) || std::isnan(voxelE))
@@ -397,7 +422,9 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
             const pandora::CartesianVector voxelPos(voxelX, voxelY, voxelZ);
             const float MipE{0.00075};
             const float voxelMipEquivalentE = voxelE / MipE;
-            const int tpcID(geom.GetTPCNumber(voxelPos));
+            // const int tpcID(geom.GetTPCNumber(voxelPos)); // old version
+            int tpcID(geom.GetTPCNumber(voxelPos)); // TODO: delete or modify, (w/o this compiler complains about geom not being used
+            tpcID = get_stupid_conversion(voxel_io_group);
             lar_content::LArCaloHitParameters caloHitParameters;
             caloHitParameters.m_positionVector = voxelPos;
             caloHitParameters.m_expectedDirection = pandora::CartesianVector(0.f, 0.f, 1.f);
