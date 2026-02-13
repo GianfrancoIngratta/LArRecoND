@@ -305,9 +305,14 @@ StatusCode PrintCurrentPfoInfoAlgorithm::PrintMCparticlesInfo(const MCParticleLi
 
     for (const MCParticle* pfo : *pMCParticleList)
     {
+      // PRINT ONLY MUON INFO
+      auto pdg = pfo->GetParticleId();
+      if(abs(pdg)!=13) continue;
+
       auto vertex = pfo->GetVertex();
       auto end_point = pfo->GetEndpoint();
       auto uid = pfo->GetUid();
+      auto momentum = pfo->GetMomentum();
 
       auto vertex_x = vertex.GetX();
       auto vertex_y = vertex.GetY();
@@ -315,9 +320,9 @@ StatusCode PrintCurrentPfoInfoAlgorithm::PrintMCparticlesInfo(const MCParticleLi
       auto end_point_x = end_point.GetX();
       auto end_point_y = end_point.GetY();
       auto end_point_z = end_point.GetZ();
-
-      auto pdg = pfo->GetParticleId();
-      if(abs(pdg)!=13) continue;
+      auto px = momentum.GetX();
+      auto py = momentum.GetY();
+      auto pz = momentum.GetZ();
 
       auto parents = pfo->GetParentList();
       const MCParticle* parent = (parents.size()>0)? parents.front() : nullptr;
@@ -340,6 +345,9 @@ StatusCode PrintCurrentPfoInfoAlgorithm::PrintMCparticlesInfo(const MCParticleLi
            << ", \"end_point_x\" : " << end_point_x 
            << ", \"end_point_y\" : " << end_point_y 
            << ", \"end_point_z\" : " << end_point_z 
+           << ", \"px\" : " << px
+           << ", \"py\" : " << py
+           << ", \"pz\" : " << pz
            << "},\n";
     }
     return STATUS_CODE_SUCCESS;
