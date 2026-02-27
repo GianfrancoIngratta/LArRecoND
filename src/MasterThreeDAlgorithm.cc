@@ -27,7 +27,9 @@
 #include "larpandoracontent/LArPlugins/LArRotationalTransformationPlugin.h"
 
 #include "larpandoracontent/LArUtility/PfoMopUpBaseAlgorithm.h"
+#include <cmath>
 #include <iterator>
+#include <utility>
 
 #ifdef LIBTORCH_DL
 #include "larpandoradlcontent/LArDLContent.h"
@@ -56,13 +58,14 @@ StatusCode MasterThreeDAlgorithm::Run()
     VolumeIdToHitListMap volumeIdToHitListMap;
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->GetVolumeIdToHitListMap(volumeIdToHitListMap));
 
-    std::cout << "volumeIdToHitListMap.empty(): " << volumeIdToHitListMap.empty() << "\n";
+    for (const auto& [volumeId, HitListMap] : volumeIdToHitListMap) {
+        std::cout << "volumeId: " << volumeId << ", Value: " << HitListMap.m_allHitList.size() << std::endl;
+    }
 
     if (m_shouldRunAllHitsCosmicReco)
     {
         PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->RunCosmicRayReconstruction(volumeIdToHitListMap));
 
-        std::cout << "volumeIdToHitListMap.empty(): " << volumeIdToHitListMap.empty() << "\n";
         PfoToLArTPCMap pfoToLArTPCMap;
         PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->RecreateCosmicRayPfos(pfoToLArTPCMap));
 
@@ -306,7 +309,7 @@ const Pandora *MasterThreeDAlgorithm::CreateWorkerInstance(
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 const Pandora *MasterThreeDAlgorithm::CreateWorkerInstance(
-    const LArTPCMap &larTPCMap, const DetectorGapList &gapList, const std::string &settingsFile, const std::string &name) const
+    const LArTPCMap &larTPCMap, const DetectorGapList &gapList, const std::string &settingsFile, const std::string &name, const unsigned int id = 0) const
 {
     if (larTPCMap.empty())
     {
@@ -348,9 +351,13 @@ const Pandora *MasterThreeDAlgorithm::CreateWorkerInstance(
         parentMinZ = std::min(parentMinZ, pLArTPC->GetCenterZ() - 0.5f * pLArTPC->GetWidthZ());
         parentMaxZ = std::max(parentMaxZ, pLArTPC->GetCenterZ() + 0.5f * pLArTPC->GetWidthZ());
     }
-
+    
+    std::cout << "building a columnar drift volume with boundaries X = (" << parentMinX << ", " << parentMaxX 
+                                                           << ") , Y = (" << parentMinY << ", " << parentMaxY 
+                                                           << ") , Z = (" << parentMinZ << ", " << parentMaxZ 
+                                                           << ")\n";
     PandoraApi::Geometry::LArTPC::Parameters larTPCParameters;
-    larTPCParameters.m_larTPCVolumeId = 0;
+    larTPCParameters.m_larTPCVolumeId = id;
     larTPCParameters.m_centerX = 0.5f * (parentMaxX + parentMinX);
     larTPCParameters.m_centerY = 0.5f * (parentMaxY + parentMinY);
     larTPCParameters.m_centerZ = 0.5f * (parentMaxZ + parentMinZ);
@@ -402,13 +409,44 @@ StatusCode MasterThreeDAlgorithm::InitializeWorkerInstances()
         const LArTPCMap &larTPCMap(this->GetPandora().GetGeometry()->GetLArTPCMap());
         const DetectorGapList &gapList(this->GetPandora().GetGeometry()->GetDetectorGapList());
 
+        // for (const LArTPCMap::value_type &mapEntry : larTPCMap)
+        // {
+        //     const unsigned int volumeId(mapEntry.second->GetLArTPCVolumeId());
+        //     m_crWorkerInstances.push_back(
+        //         this->CreateWorkerInstance(*(mapEntry.second), gapList, m_crSettingsFile, "CRWorkerInstance" + std::to_string(volumeId)));
+        // }
+        
+        // make a submap with all drift volumes sharing the same xy coordinates -------------
+        // TODO: make sure preciosion level .....
+        std::map<std::pair<float, float>, LArTPCMap> XYgrouped;
+        // (x1, y1) ---> {vol0 :  TPCz0, vol1 : TPCz1, ...}
         for (const LArTPCMap::value_type &mapEntry : larTPCMap)
         {
-            const unsigned int volumeId(mapEntry.second->GetLArTPCVolumeId());
-            m_crWorkerInstances.push_back(
-                this->CreateWorkerInstance(*(mapEntry.second), gapList, m_crSettingsFile, "CRWorkerInstance" + std::to_string(volumeId)));
+          const LArTPC& tpc(*(mapEntry.second));
+          auto key = std::make_pair(tpc.GetCenterX(), tpc.GetCenterY());
+          auto it = XYgrouped.find(key);
+          if (it != XYgrouped.end())
+          {
+            LArTPCMap& tpcMap = it->second;
+            unsigned int current_max_id = tpcMap.empty() ? 0 : tpcMap.rbegin()->first + 1; 
+            XYgrouped[key].emplace(current_max_id, &tpc);
+          }else{
+            XYgrouped[key].emplace(0, &tpc);
+          }
+        }
+        unsigned int si = 0;
+        for (const auto& [xy, submap] : XYgrouped)
+        {
+          const auto& [x, y] = xy;
+          std::cout << "Group of drift volumes at (" << x << ", " << y << ") with "<< XYgrouped[xy].size() <<" drift volumes \n";
+
+          m_crWorkerInstances.push_back(
+          this->CreateWorkerInstance(submap, gapList, m_crSettingsFile, "CRWorkerInstance" + std::to_string(si), si));
+          si++;
         }
         std::cout << "m_crWorkerInstances.size() " << m_crWorkerInstances.size() << "\n";
+        // ------------------------------------------------------------------------------------------
+        // throw "";
 
         if (m_shouldRunSlicing)
             m_pSlicingWorkerInstance = this->CreateWorkerInstance(larTPCMap, gapList, m_slicingSettingsFile, "SlicingWorker");
@@ -431,12 +469,29 @@ StatusCode MasterThreeDAlgorithm::InitializeWorkerInstances()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
+StatusCode MasterThreeDAlgorithm::GetcrWorkerLArTPC(const LArCaloHit *const pCaloHit, unsigned int& tpcId, const LArTPC*& pLArTPC) const
+{
+  tpcId = 0;
+  for (const auto& worker: m_crWorkerInstances)
+  {
+    // get the worker's tpc
+    const LArTPC &larTPC = worker->GetGeometry()->GetLArTPC();
+    // compare tpc center and dimensions with the Calohit coordinates
+    // if the calohits falls into the worker return the id of the worker
+    if( (fabs(larTPC.GetCenterX() - pCaloHit->GetPositionVector().GetX()) < 0.5f*larTPC.GetWidthX()) && 
+        (fabs(larTPC.GetCenterY() - pCaloHit->GetPositionVector().GetY()) < 0.5f*larTPC.GetWidthY()) && 
+        (fabs(larTPC.GetCenterZ() - pCaloHit->GetPositionVector().GetZ()) < 0.5f*larTPC.GetWidthZ()) )
+    {
+      pLArTPC = &larTPC;
+      return STATUS_CODE_SUCCESS;
+    }
+    ++tpcId;
+  }
+  return STATUS_CODE_NOT_INITIALIZED;
+}
 
 StatusCode MasterThreeDAlgorithm::GetVolumeIdToHitListMap(VolumeIdToHitListMap &volumeIdToHitListMap) const
 {
-    const LArTPCMap &larTPCMap(this->GetPandora().GetGeometry()->GetLArTPCMap());
-    const unsigned int nLArTPCs(larTPCMap.size());
-
     const CaloHitList *pCaloHitList(nullptr);
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::GetList(*this, m_inputHitListName, pCaloHitList));
 
@@ -444,28 +499,71 @@ StatusCode MasterThreeDAlgorithm::GetVolumeIdToHitListMap(VolumeIdToHitListMap &
     {
         const LArCaloHit *const pLArCaloHit(dynamic_cast<const LArCaloHit *>(pCaloHit));
 
-        if (!pLArCaloHit && (1 != nLArTPCs))
+        if (!pLArCaloHit)
             return STATUS_CODE_INVALID_PARAMETER;
 
-        const unsigned int volumeId(pLArCaloHit ? pLArCaloHit->GetLArTPCVolumeId() : 0);
-        const LArTPC *const pLArTPC(larTPCMap.at(volumeId));
+        unsigned int volumeId;
+        const LArTPC* pLArTPC = nullptr;
 
+        if(GetcrWorkerLArTPC(pLArCaloHit, volumeId, pLArTPC) == STATUS_CODE_NOT_INITIALIZED)
+          continue;
+        
+        std::cout << "volumeId " << volumeId << "\n";
         LArTPCHitList &larTPCHitList(volumeIdToHitListMap[volumeId]);
         larTPCHitList.m_allHitList.push_back(pCaloHit);
-
+        
         if (((pCaloHit->GetPositionVector().GetX() >= (pLArTPC->GetCenterX() - 0.5f * pLArTPC->GetWidthX())) &&
                 (pCaloHit->GetPositionVector().GetX() <= (pLArTPC->GetCenterX() + 0.5f * pLArTPC->GetWidthX()))))
         {
             larTPCHitList.m_truncatedHitList.push_back(pCaloHit);
         }
         else
+        {
             std::cout << "Hit of type " << pCaloHit->GetHitType() << " outside TPC " << volumeId << "? "
                       << pCaloHit->GetPositionVector().GetX() << ", " << pLArTPC->GetCenterX() - 0.5f * pLArTPC->GetWidthX() << ", "
                       << pLArTPC->GetCenterX() + 0.5f * pLArTPC->GetWidthX() << std::endl;
+        }
     }
-
+    for (const auto& [volumeId, HitListMap] : volumeIdToHitListMap) {
+        std::cout << "volumeId: " << volumeId << ", Value: " << HitListMap.m_allHitList.size() << std::endl;
+    }
     return STATUS_CODE_SUCCESS;
 }
+
+// StatusCode MasterThreeDAlgorithm::GetVolumeIdToHitListMap(VolumeIdToHitListMap &volumeIdToHitListMap) const
+// {
+//     const LArTPCMap &larTPCMap(this->GetPandora().GetGeometry()->GetLArTPCMap());
+//     const unsigned int nLArTPCs(larTPCMap.size());
+//
+//     const CaloHitList *pCaloHitList(nullptr);
+//     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::GetList(*this, m_inputHitListName, pCaloHitList));
+//
+//     for (const CaloHit *const pCaloHit : *pCaloHitList)
+//     {
+//         const LArCaloHit *const pLArCaloHit(dynamic_cast<const LArCaloHit *>(pCaloHit));
+//
+//         if (!pLArCaloHit && (1 != nLArTPCs))
+//             return STATUS_CODE_INVALID_PARAMETER;
+//
+//         const unsigned int volumeId(pLArCaloHit ? pLArCaloHit->GetLArTPCVolumeId() : 0);
+//         const LArTPC *const pLArTPC(larTPCMap.at(volumeId));
+//
+//         LArTPCHitList &larTPCHitList(volumeIdToHitListMap[volumeId]);
+//         larTPCHitList.m_allHitList.push_back(pCaloHit);
+//
+//         if (((pCaloHit->GetPositionVector().GetX() >= (pLArTPC->GetCenterX() - 0.5f * pLArTPC->GetWidthX())) &&
+//                 (pCaloHit->GetPositionVector().GetX() <= (pLArTPC->GetCenterX() + 0.5f * pLArTPC->GetWidthX()))))
+//         {
+//             larTPCHitList.m_truncatedHitList.push_back(pCaloHit);
+//         }
+//         else
+//             std::cout << "Hit of type " << pCaloHit->GetHitType() << " outside TPC " << volumeId << "? "
+//                       << pCaloHit->GetPositionVector().GetX() << ", " << pLArTPC->GetCenterX() - 0.5f * pLArTPC->GetWidthX() << ", "
+//                       << pLArTPC->GetCenterX() + 0.5f * pLArTPC->GetWidthX() << std::endl;
+//     }
+//
+//     return STATUS_CODE_SUCCESS;
+// }
 
 StatusCode MasterThreeDAlgorithm::ReadSettings(const pandora::TiXmlHandle xmlHandle)
 {

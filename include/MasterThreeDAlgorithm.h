@@ -87,7 +87,7 @@ protected:
      *  @return the address of the pandora instance
      */
     const pandora::Pandora *CreateWorkerInstance(const pandora::LArTPCMap &larTPCMap, const pandora::DetectorGapList &gapList,
-        const std::string &settingsFile, const std::string &name) const;
+        const std::string &settingsFile, const std::string &name, const unsigned int id) const;
 
     /**
      *  @brief  Initialize pandora worker instances
@@ -102,6 +102,7 @@ protected:
      *  @return status code
      */
     pandora::StatusCode GetVolumeIdToHitListMap(VolumeIdToHitListMap &volumeIdToHitListMap) const;
+    pandora::StatusCode GetcrWorkerLArTPC(const LArCaloHit *const pCaloHit, unsigned int& tpcId, const pandora::LArTPC*& pLArTPC) const;
 
     pandora::StatusCode ReadSettings(const pandora::TiXmlHandle xmlHandle) override;
 };
