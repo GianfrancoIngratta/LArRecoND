@@ -8,6 +8,7 @@
 
 #include "Pandora/AlgorithmHeaders.h"
 #include "Helpers/MCParticleHelper.h"
+#include "Pandora/PandoraInternal.h"
 #include "larpandoracontent/LArObjects/LArMCParticle.h"
 
 #include "PreProcessingThreeDAlgorithm.h"
@@ -180,6 +181,8 @@ void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *& pPfo
           // Key not found: keep default value (0)
       }
 
+      pandora::Uid mc_particle_uid = GetPfo_mc_unique_uid(pPfo);
+
       for (const Cluster *pCluster : cluster3DList)
       {
         CaloHitList caloHitList;
@@ -190,7 +193,9 @@ void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *& pPfo
           pfoInfoOutputFile << "{\"STAGE\" : " << "\"" << STAGE << "\""
                     << ", \"CallNumber\" : " << "\"" <<AlgoExecutionCount[m_inputStageName] << "\""
                     << ", \"pfoListName\" : " << "\"" << LIST_NAME << "\""
-                    << ", \"pfo\" : " << "\"" << pPfo + AlgoExecutionCount[m_inputStageName] << "\""
+                    << ", \"mc_particle_uid\" : " << "\"" << mc_particle_uid << "\""
+                    // << ", \"pfo\" : " << "\"" << pPfo + AlgoExecutionCount[m_inputStageName] << "\""
+                    << ", \"pfo\" : " << "\"" << pPfo <<"\"" << AlgoExecutionCount[m_inputStageName] << "\""
                     << ", \"isClearCosmic\" : " << "\"" << isClearCosmic << "\""
                     << ", \"NofCluters\" : " << "\"" << cluster3DList.size()  << "\""
                     << ", \"Cluster\" : " << "\"" << pCluster + AlgoExecutionCount[m_inputStageName] << "\""
@@ -213,6 +218,7 @@ void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *& pPfo
           pfoInfoOutputFile   << "{\"STAGE\" : " << "\"" << m_inputStageName << "\""
                     << ", \"CallNumber\" : " << "\"" <<AlgoExecutionCount[m_inputStageName] << "\""
                     << ", \"pfoListName\" : " << "\"" << LIST_NAME << "\""
+                    << ", \"mc_particle_uid\" : " << "\"" << mc_particle_uid << "\""
                     << ", \"pfo\" : " << "\"" << pPfo << "\""
                     << ", \"isClearCosmic\" : " << "\"" << isClearCosmic << "\""
                     << ", \"NofCluters\" : " << "\"" << cluster2DList.size()  << "\""
@@ -295,6 +301,74 @@ void PrintCurrentPfoInfoAlgorithm::PrintClusterListInfo(const ClusterList*& pClu
 
   std::cout << "PrintCurrentPfoInfoAlgorithm::PrintClusterListInfo end \n";
   return;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------
+
+pandora::Uid PrintCurrentPfoInfoAlgorithm::GetPfo_mc_unique_uid(const ParticleFlowObject*& pfo) const
+{
+    CaloHitList caloHitList3D;
+    LArPfoHelper::GetCaloHits(pfo, TPC_3D, caloHitList3D);
+
+    Uid the_main = nullptr;
+    // float the_main_vertexX = -999.;
+    // float the_main_vertexY = -999.;
+    // float the_main_vertexZ = -999.;
+
+    std::map<Uid, int> MCParticleToHitCounter;
+    std::map<Uid, float> MCParticleToVertexX;
+    std::map<Uid, float> MCParticleToVertexY;
+    std::map<Uid, float> MCParticleToVertexZ;
+
+    for (const auto& hit : caloHitList3D)
+    {
+      // mc particle -> contribution to the hit
+      auto map = hit->GetMCParticleWeightMap();
+      float max_contrib = 0.;
+
+      pandora::Uid mc_max_contrib;
+      // float vertexX_mc_max_contrib = -999.;
+      // float vertexY_mc_max_contrib = -999.;
+      // float vertexZ_mc_max_contrib = -999.;
+
+      for(auto const &[this_mc, contrib] : map)
+      {
+       if(max_contrib < contrib) {
+         mc_max_contrib = this_mc->GetUid();
+         // vertexX_mc_max_contrib = this_mc->GetVertex().GetX();
+         // vertexY_mc_max_contrib = this_mc->GetVertex().GetY();
+         // vertexZ_mc_max_contrib = this_mc->GetVertex().GetZ();
+         max_contrib = contrib;
+       }
+      }
+       // at the end of this loop we know the mc particle
+       // that constribuited the most to this hit and 
+       // store its relevant info
+      if(MCParticleToHitCounter.count(mc_max_contrib)==0)
+      {
+        MCParticleToHitCounter[mc_max_contrib] = 0;
+        // MCParticleToVertexX[mc_max_contrib] = vertexX_mc_max_contrib;
+        // MCParticleToVertexY[mc_max_contrib] = vertexY_mc_max_contrib;
+        // MCParticleToVertexZ[mc_max_contrib] = vertexZ_mc_max_contrib;
+      }
+      MCParticleToHitCounter[mc_max_contrib]++; 
+    }
+
+    int max_counts = 0;
+    // find the mc particle that cosntriuited the most
+    // to all pfo hits
+    for (auto const &[mc_uid, counts] : MCParticleToHitCounter)
+    {
+      if(counts > max_counts)
+      {
+        the_main = mc_uid;
+        // the_main_vertexX = MCParticleToVertexX[mc_uid];
+        // the_main_vertexY = MCParticleToVertexY[mc_uid];
+        // the_main_vertexZ = MCParticleToVertexZ[mc_uid];
+        max_counts = counts;
+      }
+    }
+  return the_main;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------

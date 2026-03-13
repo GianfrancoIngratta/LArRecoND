@@ -9,6 +9,7 @@
 #define LAR_PRINT_CURRENT_PFO_INFO_ALGORITHM_H 1
 
 #include "Pandora/Algorithm.h"
+#include "Pandora/PandoraInternal.h"
 #include "larpandoracontent/LArHelpers/LArMCParticleHelper.h"
 
 namespace lar_content
@@ -34,6 +35,7 @@ namespace lar_content
       pandora::StatusCode Run();
       void PrintCaloHitsInfo(const pandora::CaloHitList *& pCaloHitList, std::string HitsName, std::string STAGE);
       void PrintClusterListInfo(const pandora::ClusterList *& pClusterList, std::string clusterName, std::string STAGE);
+      pandora::Uid GetPfo_mc_unique_uid(const pandora::ParticleFlowObject*& pfo) const;
       void PrintPfoInfo(const pandora::ParticleFlowObject *& pPfo, std::string STAGE, std::string LIST_NAME);
       pandora::StatusCode PrintMCparticlesInfo(const pandora::MCParticleList*& pMCParticleList, const pandora::CaloHitList*& pMCCaloHitList) const;
       pandora::StatusCode PrintMCparticlesInfo(const pandora::MCParticleList*& pMCParticleList ) const;
