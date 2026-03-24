@@ -188,18 +188,18 @@ void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *& pPfo
         CaloHitList caloHitList;
         pCluster->GetOrderedCaloHitList().FillCaloHitList(caloHitList);
 
+        // << ", \"pfo\" : " << "\"" << pPfo + AlgoExecutionCount[m_inputStageName] << "\""
         for (const CaloHit *pCaloHit : caloHitList)
         {
           pfoInfoOutputFile << "{\"STAGE\" : " << "\"" << STAGE << "\""
                     << ", \"CallNumber\" : " << "\"" <<AlgoExecutionCount[m_inputStageName] << "\""
                     << ", \"pfoListName\" : " << "\"" << LIST_NAME << "\""
                     << ", \"mc_particle_uid\" : " << "\"" << mc_particle_uid << "\""
-                    // << ", \"pfo\" : " << "\"" << pPfo + AlgoExecutionCount[m_inputStageName] << "\""
-                    << ", \"pfo\" : " << "\"" << pPfo <<"\"" << AlgoExecutionCount[m_inputStageName] << "\""
+                    << ", \"pfo\" : " << "\"" << pPfo << "\""
                     << ", \"isClearCosmic\" : " << "\"" << isClearCosmic << "\""
                     << ", \"NofCluters\" : " << "\"" << cluster3DList.size()  << "\""
-                    << ", \"Cluster\" : " << "\"" << pCluster + AlgoExecutionCount[m_inputStageName] << "\""
-                    << ", \"CaloHit\" : " << "\"" << pCaloHit + AlgoExecutionCount[m_inputStageName] << "\""
+                    << ", \"Cluster\" : " << "\"" << pCluster << "\""
+                    << ", \"CaloHit\" : " << "\"" << pCaloHit << "\""
                     << ", \"CaloHitType\" : " << "\""<< pCaloHit->GetHitType() << "\""
                     << ", \"CaloHitX\" : " << pCaloHit->GetPositionVector().GetX()
                     << ", \"CaloHitY\" : " << pCaloHit->GetPositionVector().GetY()

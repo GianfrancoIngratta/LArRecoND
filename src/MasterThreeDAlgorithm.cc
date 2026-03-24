@@ -69,7 +69,6 @@ StatusCode MasterThreeDAlgorithm::Run()
         PfoToLArTPCMap pfoToLArTPCMap;
         PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->RecreateCosmicRayPfos(pfoToLArTPCMap));
 
-        std::cout << "pfoToLArTPCMap.empty(): " << pfoToLArTPCMap.empty() << "\n";
         if (m_shouldRunStitching){
           PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->StitchCosmicRayPfos(pfoToLArTPCMap, stitchedPfosToX0Map));
         }
@@ -493,7 +492,25 @@ StatusCode MasterThreeDAlgorithm::GetcrWorkerLArTPC(const LArCaloHit *const pCal
 StatusCode MasterThreeDAlgorithm::GetVolumeIdToHitListMap(VolumeIdToHitListMap &volumeIdToHitListMap) const
 {
     const CaloHitList *pCaloHitList(nullptr);
+    // const CaloHitList *pCaloHitList2(nullptr);
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::GetList(*this, m_inputHitListName, pCaloHitList));
+
+    // std::cout << "DEBUG : inside GetVolumeIdToHitListMap\n";
+    // PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::GetCurrentList(*this, pCaloHitList2));
+    // std::cout << "pCaloHitList2->size() " << pCaloHitList2->size()
+    //           << " VS pCaloHitList->size() " << pCaloHitList->size() << "\n"; 
+
+    // for (const CaloHit *const pCaloHit: *pCaloHitList2)
+    // {
+    //     const LArCaloHit *const pLArCaloHit(dynamic_cast<const LArCaloHit *>(pCaloHit));
+    //     std::cout << "this hit x y z = ( " << 
+    //               pLArCaloHit->GetPositionVector().GetX() << ", " <<
+    //               pLArCaloHit->GetPositionVector().GetY() << ", " <<
+    //               pLArCaloHit->GetPositionVector().GetZ() << "), hit volumeId " << pLArCaloHit->GetLArTPCVolumeId()
+    //               << ", type " << pCaloHit->GetHitType()
+    //               << "\n";
+    // }
+    // throw "";
 
     for (const CaloHit *const pCaloHit : *pCaloHitList)
     {
@@ -508,9 +525,14 @@ StatusCode MasterThreeDAlgorithm::GetVolumeIdToHitListMap(VolumeIdToHitListMap &
         if(GetcrWorkerLArTPC(pLArCaloHit, volumeId, pLArTPC) == STATUS_CODE_NOT_INITIALIZED)
           continue;
         
-        std::cout << "volumeId " << volumeId << "\n";
         LArTPCHitList &larTPCHitList(volumeIdToHitListMap[volumeId]);
         larTPCHitList.m_allHitList.push_back(pCaloHit);
+        std::cout << "this hit x y z = ( " << 
+                  pLArCaloHit->GetPositionVector().GetX() << ", " <<
+                  pLArCaloHit->GetPositionVector().GetY() << ", " <<
+                  pLArCaloHit->GetPositionVector().GetZ() << "), hit volumeId " << volumeId
+                  << ", type " << pCaloHit->GetHitType()
+                  << "\n";
         
         if (((pCaloHit->GetPositionVector().GetX() >= (pLArTPC->GetCenterX() - 0.5f * pLArTPC->GetWidthX())) &&
                 (pCaloHit->GetPositionVector().GetX() <= (pLArTPC->GetCenterX() + 0.5f * pLArTPC->GetWidthX()))))

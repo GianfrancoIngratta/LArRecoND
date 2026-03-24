@@ -400,6 +400,7 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
         int hitCounter(0);
 
         // Loop over the space points and make them into caloHits
+        int nof_larcalohit_created = 0;
         for (size_t isp = 0; isp < nSP; ++isp)
         {
             const float voxelX = (*larsp->m_x)[isp];
@@ -474,8 +475,11 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
             }
 
             if (parameters.m_use3D)
-                PANDORA_THROW_RESULT_IF(
-                    pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::CaloHit::Create(*pPrimaryPandora, caloHitParameters, m_larCaloHitFactory));
+            {
+              PANDORA_THROW_RESULT_IF(
+                  pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::CaloHit::Create(*pPrimaryPandora, caloHitParameters, m_larCaloHitFactory));
+              nof_larcalohit_created++;
+            }
 
             if (parameters.m_dataFormat == Parameters::LArNDFormat::SPMC)
                 PandoraApi::SetCaloHitToMCParticleRelationship(*pPrimaryPandora, (void *)((intptr_t)hitCounter), (void *)((intptr_t)trackID), energyFrac);
@@ -526,6 +530,7 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
             }
 
         } // end space point loop
+        std::cout << "DEBUG nof_larcalohit_created in PandoraInterface " << nof_larcalohit_created << "\n";
 
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::ProcessEvent(*pPrimaryPandora));
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::Reset(*pPrimaryPandora));
