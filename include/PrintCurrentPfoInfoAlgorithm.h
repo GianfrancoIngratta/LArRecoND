@@ -28,7 +28,7 @@ namespace lar_content
       PrintCurrentPfoInfoAlgorithm();
       static std::map<std::string, int> AlgoExecutionCount;
       static std::ofstream pfoInfoOutputFile;
-      static std::ofstream MCpfoInfoOutputFile;
+      static std::ofstream MCparticleInfoOutputFile;
     
     private:
 
