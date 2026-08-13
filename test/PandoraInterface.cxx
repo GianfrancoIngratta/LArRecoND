@@ -397,6 +397,10 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
             {
               tpcID = ioGroup2tcpIDMap_2x2[voxel_io_group];
             } 
+            else if ((2 == geom.m_TPCs.size()) && (voxel_io_group >= 0)) // FSD
+            {
+              tpcID = ioGroup2tcpIDMap_FSD[voxel_io_group];
+            }
             else 
             {
               tpcID = geom.GetTPCNumber(voxelPos);
