@@ -321,7 +321,7 @@ void rootToRootConversion(
                 std::vector<long long>  this_hit_particleIDLocal;
                 std::vector<long long>  this_hit_vertexID;
                 std::vector<float> this_hit_packetFrac;
-                for ( unsigned int idxMatch=0; idxMatch<=(unsigned int)all_hit_packetFrac.size(); ++idxMatch ){
+                for ( unsigned int idxMatch=0; idxMatch<(unsigned int)all_hit_packetFrac.size(); ++idxMatch ){
                     if( this_hit_pdg.size() == (unsigned int)all_matches[matchIndex] || idxMatch==(unsigned int)all_hit_packetFrac.size()) {
                         hit_pdg.push_back( this_hit_pdg );
                         hit_segmentID.push_back( this_hit_segmentID );
@@ -368,6 +368,15 @@ void rootToRootConversion(
                     this_hit_vertexID.push_back(all_hit_vertexID[idxMatch]);
                     this_hit_packetFrac.push_back(all_hit_packetFrac[idxMatch]);
                 }
+		// Flush the last hit, which would otherwise remain buffered
+		if (matchIndex < all_matches.size()) {
+    			hit_pdg.push_back(this_hit_pdg);
+    			hit_segmentID.push_back(this_hit_segmentID);
+    			hit_particleID.push_back(this_hit_particleID);
+    			hit_particleIDLocal.push_back(this_hit_particleIDLocal);
+    			hit_vertexID.push_back(this_hit_vertexID);
+    			hit_packetFrac.push_back(this_hit_packetFrac);
+		}	
             }
             // Fill
 	    nhits = (int)x.size();
