@@ -14,17 +14,7 @@
         <CurrentCaloHitListReplacement>CaloHitList2D</CurrentCaloHitListReplacement>
     </algorithm>
 
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArPreProcessingThreeD</InputStageName> -->
-    <!--   <InputCaloHitList3DName>CaloHitList3D</InputCaloHitList3DName> -->
-    <!--   <InputCaloHitListUName>CaloHitListU</InputCaloHitListUName> -->
-    <!--   <InputCaloHitListVName>CaloHitListV</InputCaloHitListVName> -->
-    <!--   <InputCaloHitListWName>CaloHitListW</InputCaloHitListWName> -->
-    <!--   <InputCaloHitList2DName>CaloHitList2D</InputCaloHitList2DName> -->
-    <!-- </algorithm> -->
-    <!---->
-        <!-- Use 3D hits to make the 2D clusters -->
+    <!-- Use 3D hits to make the 2D clusters -->
     <algorithm type = "LArSimpleClusterCreationThreeD">
         <InputCaloHitListNameU>CaloHitListU</InputCaloHitListNameU>
         <InputCaloHitListNameV>CaloHitListV</InputCaloHitListNameV>
@@ -35,12 +25,6 @@
         <OutputClusterListNameW>ClustersW</OutputClusterListNameW>
         <OutputClusterListName3D>Clusters3D</OutputClusterListName3D>
     </algorithm>
-
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArSimpleClusterCreationThreeD</InputStageName> -->
-    <!--   <InputClusterListName3D>Clusters3D</InputClusterListName3D> -->
-    <!-- </algorithm> -->
 
     <algorithm type = "LArReplaceHitAndClusterLists">
         <InputClusterListName>Clusters3D</InputClusterListName>
@@ -84,15 +68,6 @@
         <OutputClusterListNameW>ClustersW</OutputClusterListNameW>
     </algorithm>
 
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArCreateTwoDClustersFromThreeD</InputStageName> -->
-    <!--   <InputClusterListName3D>Clusters3D</InputClusterListName3D> -->
-    <!--   <InputClusterListNameU>ClustersU</InputClusterListNameU> -->
-    <!--   <InputClusterListNameV>ClustersV</InputClusterListNameV> -->
-    <!--   <InputClusterListNameW>ClustersW</InputClusterListNameW> -->
-    <!-- </algorithm> -->
-
     <!-- We have made the 2D clusters, so remove 3D for now to make hits available later -->
     <algorithm type = "LArListDeletion" description = "3DClusterDeletion">
         <ClusterListNames>Clusters3D</ClusterListNames>
@@ -121,12 +96,6 @@
         </TrackTools>
       </algorithm>
 
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArThreeDTransverseTracks</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!-- </algorithm> -->
-
     <algorithm type = "LArThreeDLongitudinalTracks">
         <!--adding this to reduce execution time, preserving physics performances (hopefully???)--> 
         <NMaxTensorToolRepeats>100</NMaxTensorToolRepeats>
@@ -139,12 +108,6 @@
             <tool type = "LArMatchedEndPoints"/>
         </TrackTools>
     </algorithm>
-
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArThreeDLongitudinalTracks</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!-- </algorithm> -->
 
     <algorithm type = "LArThreeDTrackFragments">
         <!--adding this to reduce execution time, preserving physics performances (hopefully???)--> 
@@ -160,12 +123,6 @@
         <algorithm type = "LArSimpleClusterCreation" description = "ClusterRebuilding"/>
     </algorithm>
 
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArThreeDTrackFragments</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!-- </algorithm> -->
-
     <algorithm type = "LArCosmicRayTrackMatching">
         <InputClusterListNameU>ClustersU</InputClusterListNameU>
         <InputClusterListNameV>ClustersV</InputClusterListNameV>
@@ -173,24 +130,12 @@
         <OutputPfoListName>MuonParticles3D</OutputPfoListName>
     </algorithm>
 
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArCosmicRayTrackMatching</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!-- </algorithm> -->
-
     <algorithm type = "LArCosmicRayTrackRecovery">
         <InputClusterListNameU>ClustersU</InputClusterListNameU>
         <InputClusterListNameV>ClustersV</InputClusterListNameV>
         <InputClusterListNameW>ClustersW</InputClusterListNameW>
         <OutputPfoListName>MuonParticles3D</OutputPfoListName>
     </algorithm>
-
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArCosmicRayTrackRecovery</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!-- </algorithm> -->
 
     <!-- PruneClusters -->
     <algorithm type = "LArListPruning" description = "ListPruning">
@@ -306,12 +251,6 @@
         <OutputPfoListName>MuonParticles3D</OutputPfoListName>
     </algorithm>
 
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArCosmicRayShowerMatching</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!-- </algorithm> -->
-
     <algorithm type = "LArIsolatedClusterMopUp">
         <PfoListNames>MuonParticles3D DeltaRayParticles3D</PfoListNames>
         <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames>
@@ -324,35 +263,17 @@
         <OutputClusterListNames>MuonClusters3D DeltaRayClusters3D</OutputClusterListNames>
     </algorithm>
 
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArPfoThreeDHitAssignment</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!-- </algorithm> -->
-
     <!-- VertexAlgorithms -->
     <algorithm type = "LArCosmicRayVertexBuilding">
         <InputPfoListName>MuonParticles3D</InputPfoListName>
         <OutputVertexListName>CRVertices3D</OutputVertexListName>
     </algorithm>
     
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArCosmicRayVertexBuilding</InputStageName> -->
-    <!--   <InputVertexListNames>CRVertices3D</InputVertexListNames> -->
-    <!-- </algorithm> -->
-
     <!-- Track and shower building -->
     <algorithm type = "LArTrackParticleBuilding">
         <PfoListName>MuonParticles3D</PfoListName>
         <VertexListName>CRVertices3D</VertexListName>
     </algorithm>
-
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArTrackParticleBuilding</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!-- </algorithm> -->
 
     <!-- Output list management -->
     <algorithm type = "LArPostProcessing">
@@ -362,12 +283,5 @@
         <CaloHitListNames>CaloHitListU CaloHitListV CaloHitListW CaloHitList2D CaloHitList3D</CaloHitListNames>
         <CurrentPfoListReplacement>MuonParticles3D</CurrentPfoListReplacement>
     </algorithm>
-
-    <!-- Gianfranco comment : debugging algorithm  -->
-    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
-    <!--   <InputStageName>LArPostProcessing</InputStageName> -->
-    <!--   <InputPfoListNames>MuonParticles3D</InputPfoListNames> -->
-    <!--   <InputVertexListNames>CRVertices3D</InputVertexListNames> -->
-    <!-- </algorithm> -->
 
 </pandora>
