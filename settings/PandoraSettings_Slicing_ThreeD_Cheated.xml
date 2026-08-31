@@ -14,6 +14,17 @@
         <CurrentCaloHitListReplacement>CaloHitList2D</CurrentCaloHitListReplacement>
     </algorithm>
 
+    <!-- Gianfranco comment : debugging algorithm  -->
+    <algorithm type = "LArPrintCurrentPfoInfo">
+      <InputStageName>LArPreProcessingThreeD_slicing</InputStageName>
+      <InputCaloHitList3DName>CaloHitList3D</InputCaloHitList3DName>
+      <!-- <InputCaloHitListUName>CaloHitListU</InputCaloHitListUName> -->
+      <!-- <InputCaloHitListVName>CaloHitListV</InputCaloHitListVName> -->
+      <!-- <InputCaloHitListWName>CaloHitListW</InputCaloHitListWName> -->
+      <!-- <InputCaloHitList2DName>CaloHitList2D</InputCaloHitList2DName> -->
+    </algorithm>
+
+
     <!-- SliceCreation -->
     <algorithm type = "LArSlicingThreeD">
         <InputCaloHitListNameU>CaloHitListU</InputCaloHitListNameU>

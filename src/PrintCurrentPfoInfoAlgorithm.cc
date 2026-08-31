@@ -134,6 +134,8 @@ StatusCode PrintCurrentPfoInfoAlgorithm::Run()
    }
 
   // pfoInfoOutputFile.close();
+  pfoInfoOutputFile.flush();
+  MCparticleInfoOutputFile.flush();
   
   // print CR Vertices info --------------------------------------------------------------------
   // for (unsigned int i = 0; i < m_inputVertexListNames.size(); ++i)
@@ -162,63 +164,54 @@ StatusCode PrintCurrentPfoInfoAlgorithm::Run()
   return STATUS_CODE_SUCCESS;
 }
 
-void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *& pPfo, std::string STAGE, std::string LIST_NAME)
+void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *const pPfo,
+    const std::string &STAGE, const std::string &LIST_NAME)
 {
-    
-      if(!pfoInfoOutputFile.is_open())
-      {
+    if (!pfoInfoOutputFile.is_open())
+    {
         std::cout << "Warning: pfoInfoOutputFile not open \n";
         return;
-      }
-      CaloHitList caloHitList3D;
-      LArPfoHelper::GetCaloHits(pPfo, TPC_3D, caloHitList3D);
+    }
 
-      int isClearCosmic = -999;
+    CaloHitList caloHitList3D;
+    LArPfoHelper::GetCaloHits(pPfo, TPC_3D, caloHitList3D);
 
-      try {
-          isClearCosmic = static_cast<int>(pPfo->GetPropertiesMap().at("IsClearCosmic"));
-      } catch (const std::out_of_range &) {
-          // Key not found: keep default value (0)
-      }
+    int isClearCosmic = -999;
+    try {
+        isClearCosmic = static_cast<int>(pPfo->GetPropertiesMap().at("IsClearCosmic"));
+    } catch (const std::out_of_range &) {
+        // Key not found: keep default value (-999)
+    }
 
-      // > 1 true MC particle may contribute to this reco pfo -> consider
-      // the one that has contributed the most to the pfo hits
-      // pandora::Uid mc_particle_uid = GetPfo_mc_unique_uid(pPfo);
-      
-      // loop over calohits to find pfo true mc_uid
-      for (const auto& hit : caloHitList3D)
-      {   
+    // > 1 true MC particle may contribute to this reco pfo -> consider
+    // the one that has contributed the most to the pfo hits
+    for (const auto& hit : caloHitList3D)
+    {
         auto map = hit->GetMCParticleWeightMap();
-
         Uid mc_max_contrib = 0;
         float max_contrib = 0.;
-
-        for(auto const &[this_mc, contrib] : map)
+        for (auto const &[this_mc, contrib] : map)
         {
-          if(max_contrib < contrib) {
-            mc_max_contrib = this_mc->GetUid();
-            max_contrib = contrib;
-          }
+            if (contrib > max_contrib)
+            {
+                mc_max_contrib = this_mc->GetUid();
+                max_contrib = contrib;
+            }
         }
-        // at the end of this loop we know the mc particle
-        // that constribuited the most to this hit and 
-        // store its relevant info
-
         const long uid = reinterpret_cast<intptr_t>(mc_max_contrib);
 
-        pfoInfoOutputFile 
-          << "{\"STAGE\" : " << "\"" << STAGE << "\""
-          << ", \"CALL\" : " << "\"" <<AlgoExecutionCount[m_inputStageName] << "\""
-          << ", \"pfoListName\" : " << "\"" << LIST_NAME << "\""
-          << ", \"pfo\" : " << "\"" << pPfo << "\""
-          << ", \"mc_particle_uid\" : " << uid
-          << ", \"isClearCosmic\" : " << "\"" << isClearCosmic << "\""
-          << ", \"CaloHitX\" : " << hit->GetPositionVector().GetX()
-          << ", \"CaloHitY\" : " << hit->GetPositionVector().GetY()
-          << ", \"CaloHitZ\" : " << hit->GetPositionVector().GetZ()
-          << "},\n";
-      }
-
+        pfoInfoOutputFile
+            << "{\"STAGE\" : \"" << STAGE << "\""
+            << ", \"CALL\" : \"" << AlgoExecutionCount[m_inputStageName] << "\""
+            << ", \"pfoListName\" : \"" << LIST_NAME << "\""
+            << ", \"pfo\" : \"" << pPfo << "\""
+            << ", \"mc_particle_uid\" : " << uid
+            << ", \"isClearCosmic\" : \"" << isClearCosmic << "\""
+            << ", \"CaloHitX\" : " << hit->GetPositionVector().GetX()
+            << ", \"CaloHitY\" : " << hit->GetPositionVector().GetY()
+            << ", \"CaloHitZ\" : " << hit->GetPositionVector().GetZ()
+            << "},\n";
+    }
 }
 
 void PrintCurrentPfoInfoAlgorithm::PrintCaloHitsInfo(const CaloHitList *& pCaloHitList, std::string HitsName, std::string STAGE)
@@ -239,10 +232,31 @@ void PrintCurrentPfoInfoAlgorithm::PrintCaloHitsInfo(const CaloHitList *& pCaloH
 
   for (const CaloHit *const pCaloHit : *pCaloHitList)
   {
+
+    auto map = pCaloHit->GetMCParticleWeightMap();
+
+    Uid mc_max_contrib = 0;
+    float max_contrib = 0.;
+    
+    for(auto const &[this_mc, contrib] : map)
+    {
+      if(max_contrib < contrib) {
+            mc_max_contrib = this_mc->GetUid();
+            max_contrib = contrib;
+          }
+    }
+    
+    // at the end of this loop we know the mc particle
+    // that constribuited the most to this hit and 
+    // store its relevant info
+
+    const long uid = reinterpret_cast<intptr_t>(mc_max_contrib);
+
     pfoInfoOutputFile << "{\"STAGE\" : " << "\"" << STAGE << "\"" 
             << ", \"CallNumber\" : " << "\"" <<AlgoExecutionCount[m_inputStageName] << "\""
             << ", \"CaloHitType\" : " << "\""<< HitsName << "\""
-            << ", \"CaloHit\" : " << "\""<< pCaloHit << "\""
+            // << ", \"CaloHit\" : " << "\""<< pCaloHit << "\""
+            << ", \"mc_particle_uid\" : " << uid
             << ", \"CaloHitX\" : " << pCaloHit->GetPositionVector().GetX() 
             << ", \"CaloHitY\" : " << pCaloHit->GetPositionVector().GetY()
             << ", \"CaloHitZ\" : " << pCaloHit->GetPositionVector().GetZ()
@@ -291,73 +305,6 @@ void PrintCurrentPfoInfoAlgorithm::PrintClusterListInfo(const ClusterList*& pClu
   return;
 }
 
-//------------------------------------------------------------------------------------------------------------------------------------------
-
-pandora::Uid PrintCurrentPfoInfoAlgorithm::GetPfo_mc_unique_uid(const ParticleFlowObject*& pfo) const
-{
-    CaloHitList caloHitList3D;
-    LArPfoHelper::GetCaloHits(pfo, TPC_3D, caloHitList3D);
-
-    Uid the_main = nullptr;
-    // float the_main_vertexX = -999.;
-    // float the_main_vertexY = -999.;
-    // float the_main_vertexZ = -999.;
-
-    std::map<Uid, int> MCParticleToHitCounter;
-    std::map<Uid, float> MCParticleToVertexX;
-    std::map<Uid, float> MCParticleToVertexY;
-    std::map<Uid, float> MCParticleToVertexZ;
-
-    for (const auto& hit : caloHitList3D)
-    {
-      // mc particle -> contribution to the hit
-      auto map = hit->GetMCParticleWeightMap();
-      float max_contrib = 0.;
-
-      pandora::Uid mc_max_contrib;
-      // float vertexX_mc_max_contrib = -999.;
-      // float vertexY_mc_max_contrib = -999.;
-      // float vertexZ_mc_max_contrib = -999.;
-
-      for(auto const &[this_mc, contrib] : map)
-      {
-       if(max_contrib < contrib) {
-         mc_max_contrib = this_mc->GetUid();
-         // vertexX_mc_max_contrib = this_mc->GetVertex().GetX();
-         // vertexY_mc_max_contrib = this_mc->GetVertex().GetY();
-         // vertexZ_mc_max_contrib = this_mc->GetVertex().GetZ();
-         max_contrib = contrib;
-       }
-      }
-       // at the end of this loop we know the mc particle
-       // that constribuited the most to this hit and 
-       // store its relevant info
-      if(MCParticleToHitCounter.count(mc_max_contrib)==0)
-      {
-        MCParticleToHitCounter[mc_max_contrib] = 0;
-        // MCParticleToVertexX[mc_max_contrib] = vertexX_mc_max_contrib;
-        // MCParticleToVertexY[mc_max_contrib] = vertexY_mc_max_contrib;
-        // MCParticleToVertexZ[mc_max_contrib] = vertexZ_mc_max_contrib;
-      }
-      MCParticleToHitCounter[mc_max_contrib]++; 
-    }
-
-    int max_counts = 0;
-    // find the mc particle that cosntriuited the most
-    // to all pfo hits
-    for (auto const &[mc_uid, counts] : MCParticleToHitCounter)
-    {
-      if(counts > max_counts)
-      {
-        the_main = mc_uid;
-        // the_main_vertexX = MCParticleToVertexX[mc_uid];
-        // the_main_vertexY = MCParticleToVertexY[mc_uid];
-        // the_main_vertexZ = MCParticleToVertexZ[mc_uid];
-        max_counts = counts;
-      }
-    }
-  return the_main;
-}
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 StatusCode PrintCurrentPfoInfoAlgorithm::PrintMCparticlesInfo(const MCParticleList*& pMCParticleList) const
@@ -392,7 +339,7 @@ StatusCode PrintCurrentPfoInfoAlgorithm::PrintMCparticlesInfo(const MCParticleLi
       const long parent_uid = (parent != nullptr) ? reinterpret_cast<intptr_t>(parent->GetUid()) : 0;
       
       // PRINT ONLY PRIMARIES
-      if(abs(parent->GetParticleId())!=14) continue;
+      if (!parent || abs(parent->GetParticleId()) != 14) continue;
       
       auto daughters = mcParticle->GetDaughterList();
       auto nof_daughters = daughters.size();
@@ -510,7 +457,7 @@ StatusCode PrintCurrentPfoInfoAlgorithm::ReadSettings(const TiXmlHandle xmlHandl
   PANDORA_RETURN_RESULT_IF_AND_IF(
         STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "InputCaloHitListVName", m_inputCaloHitListVName));
   PANDORA_RETURN_RESULT_IF_AND_IF(
-        STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "InputCaloHitListWNames", m_inputCaloHitListWName));
+        STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "InputCaloHitListWName", m_inputCaloHitListWName));
 
   // clusters
 PANDORA_RETURN_RESULT_IF_AND_IF(
