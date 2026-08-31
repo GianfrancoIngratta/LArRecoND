@@ -52,7 +52,7 @@ std::map<int, int> ioGroup2tcpIDMap_2x2 = {
     };
 
 std::map<int, int> ioGroup2tcpIDMap_FSD = {
-  {1,0}, {2,0}, {3,1}, {4,4}
+  {1,1}, {2,1}, {3,0}, {4,0}
 };
 
 auto ioGroup2tcpIDMap_NDLAr = [](int io_group)
