@@ -45,7 +45,7 @@ protected:
      *  @param  volumeIdToHitListMap the volume id to hit list map
      *  @param  workerToLArTPCMap the worker id to LArTPC list map
      */
-    pandora::StatusCode RunCosmicRayReconstruction(const VolumeIdToHitListMap &volumeIdToHitListMap, WorkerToLArTPCMap& workerToLArTPCMap) const;
+    pandora::StatusCode RunCosmicRayReconstruction(const VolumeIdToHitListMap &volumeIdToHitListMap) const;
     
     /**
      *  @brief  Tag clear, unambiguous cosmic-ray pfos
@@ -134,6 +134,7 @@ protected:
     bool m_shouldRunRockMus_Xworkers;   ///< Whether to run rock muons reconstruction using a columnar X worker
     bool m_tagRockMuons;  ///< bool to activate tagging of rock muons
     RockMuonTaggingToolVector m_rockMuonTaggingToolVector; ///< The cosmic-ray tagging tool vector
+    WorkerToLArTPCMap m_workerToLArTPCMap; ///< mapping between worker instances and LArTPCs
 };
 
 } // namespace lar_content
