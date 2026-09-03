@@ -71,14 +71,17 @@ StatusCode MasterThreeDAlgorithm::Run()
             PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->StitchCosmicRayPfos(pfoToLArTPCMap, stitchedPfosToX0Map));
     }
 
+    std::cout<< "DEBUG right after if statemente m_shouldRunAllHitsCosmicReco\n";
     if (m_shouldRunCosmicHitRemoval)
     {
         PfoList clearCosmicRayPfos, ambiguousPfos;
         PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->TagCosmicRayPfos(stitchedPfosToX0Map, clearCosmicRayPfos, ambiguousPfos));
+        std::cout << "DEBUG size of ambiguousPfos " << ambiguousPfos.size() << ", size " << clearCosmicRayPfos.size() <<"\n";
 
         PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->RunCosmicRayHitRemoval(ambiguousPfos));
     }
 
+    std::cout<< "DEBUG before slicing\n";
     SliceVector sliceVector;
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->RunSlicing(volumeIdToHitListMap, sliceVector));
 
@@ -140,6 +143,7 @@ StatusCode MasterThreeDAlgorithm::TagCosmicRayPfos(const PfoToFloatMap &stitched
 
 StatusCode MasterThreeDAlgorithm::RunCosmicRayReconstruction(const VolumeIdToHitListMap &volumeIdToHitListMap) const
 {
+  std::cout << "DEBUG size of m_workerToLArTPCMap " << m_workerToLArTPCMap.size() << "\n";
     for (const Pandora *const pCRWorker : m_crWorkerInstances)
     {
         const LArTPC &worker_larTPC(pCRWorker->GetGeometry()->GetLArTPC());
