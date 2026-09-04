@@ -129,7 +129,18 @@ StatusCode PrintCurrentPfoInfoAlgorithm::Run()
       continue;
 
     for (const ParticleFlowObject *pPfo : (*pPfoList))
+    {
       PrintPfoInfo(pPfo, m_inputStageName, pfoListName);
+      
+      // Print daughters as well
+      const std::string daughterListName = pfoListName + "_daughter";
+
+      PfoList daughters;
+      LArPfoHelper::GetAllDownstreamPfos(pPfo, daughters);
+
+      for (const ParticleFlowObject *pDaughter : daughters) 
+        PrintPfoInfo(pDaughter, m_inputStageName, daughterListName);
+    }
 
    }
 
@@ -165,7 +176,7 @@ StatusCode PrintCurrentPfoInfoAlgorithm::Run()
 }
 
 void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *const pPfo,
-    const std::string &STAGE, const std::string &LIST_NAME)
+    const std::string STAGE, const std::string LIST_NAME)
 {
     if (!pfoInfoOutputFile.is_open())
     {
