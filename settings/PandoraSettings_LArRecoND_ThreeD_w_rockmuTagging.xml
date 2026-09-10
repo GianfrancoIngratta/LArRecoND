@@ -15,11 +15,11 @@
     </algorithm>
 
     <!-- Gianfranco comment : debugging algorithm  -->
-    <algorithm type = "LArPrintCurrentPfoInfo">
-      <InputStageName>LArPreProcessingThreeD</InputStageName>
-      <MCParticleListNames>Input</MCParticleListNames>
+    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
+    <!--   <InputStageName>LArPreProcessingThreeD</InputStageName> -->
+    <!--   <MCParticleListNames>Input</MCParticleListNames> -->
       <!-- <InputHitListName>Input</InputHitListName> -->
-    </algorithm>
+    <!-- </algorithm> -->
 
     <algorithm type = "LArMasterThreeD">
         <CRSettingsFile>PandoraSettings_Cosmic_Standard_ThreeD.xml</CRSettingsFile>
@@ -63,10 +63,10 @@
     </algorithm>
 
     <!-- Gianfranco comment : debugging algorithm  -->
-    <algorithm type = "LArPrintCurrentPfoInfo">
-      <InputStageName>LArMasterThreeD</InputStageName>
-      <InputPfoListNames>RecreatedPfos</InputPfoListNames>
-    </algorithm>
+    <!-- <algorithm type = "LArPrintCurrentPfoInfo"> -->
+    <!--   <InputStageName>LArMasterThreeD</InputStageName> -->
+    <!--   <InputPfoListNames>RecreatedPfos</InputPfoListNames> -->
+    <!-- </algorithm> -->
 
     <algorithm type = "LArHierarchyAnalysis">
         <EventFileName>LArRecoNDInput.root</EventFileName>
