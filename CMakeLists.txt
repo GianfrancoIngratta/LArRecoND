@@ -33,11 +33,17 @@ if(PANDORA_LIBTORCH)
     find_package(LArDLContent 05.00.00 REQUIRED)
 endif()
 
+# Tree, Geom, and Hist are required unconditionally: TTree (LArSED.h, LArSP.h,
+# LArRecoNDFormat.h), TGeoManager/TGeoHMatrix (PandoraInterface.cxx,
+# PandoraOuterface.cxx), and TGraph/TSpline3 (PandoraOuterface.cxx) are all
+# used regardless of whether PandoraMonitoring is enabled.
 if(PANDORA_MONITORING)
     if (NOT TARGET PandoraPFA::PandoraMonitoring)
         find_package(PandoraMonitoring 05.00.00 REQUIRED)
     endif()
-    find_package(ROOT 6.18.04 REQUIRED COMPONENTS Eve Geom RGL EG)
+    find_package(ROOT 6.18.04 REQUIRED COMPONENTS Core RIO Tree Geom Hist Eve RGL EG)
+else()
+    find_package(ROOT 6.18.04 REQUIRED COMPONENTS Core RIO Tree Geom Hist)
 endif()
 
 if(USE_EDEPSIM)
@@ -75,6 +81,11 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${LAR_RECO_COMPILE_OPTIONS})
 target_link_libraries(${PROJECT_NAME} PRIVATE
     PandoraPFA::PandoraSDK
     PandoraPFA::LArContent
+    ROOT::Core
+    ROOT::RIO
+    ROOT::Tree
+    ROOT::Geom
+    ROOT::Hist
 )
 
 if(PANDORA_LIBTORCH)
@@ -112,6 +123,11 @@ foreach(executable_name IN LISTS LAR_RECO_EXECUTABLES)
         ${PROJECT_NAME}
         PandoraPFA::PandoraSDK
         PandoraPFA::LArContent
+        ROOT::Core
+        ROOT::RIO
+        ROOT::Tree
+        ROOT::Geom
+        ROOT::Hist
     )
 
     if(PANDORA_LIBTORCH)
@@ -135,7 +151,7 @@ foreach(executable_name IN LISTS LAR_RECO_EXECUTABLES)
     endif()
 endforeach()
 
-if(PANDORA_MONITORING AND USE_EDEPSIM)
+if(USE_EDEPSIM)
     target_link_libraries(PandoraInterface PRIVATE EDepSim::edepsim_io)
 endif()
 
