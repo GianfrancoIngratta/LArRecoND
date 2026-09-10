@@ -129,9 +129,8 @@ BuildLArContent() {
     RunWithError mkdir build
     RunWithError cd build
     RunWithError cmake $COMMON_CMAKE_FLAGS \
-        -DPANDORA_MONITORING=ON \
+        -DPANDORA_MONITORING=OFF \
         -DPandoraSDK_DIR=$PANDORA_PROJECT_DIR/PandoraSDK/build/install/lib/cmake/PandoraSDK \
-        -DPandoraMonitoring_DIR=$PANDORA_PROJECT_DIR/PandoraMonitoring/build/install/lib/cmake/PandoraMonitoring \
         "$@" ..
     RunWithError $MAKE_COMMAND
 }
@@ -142,9 +141,9 @@ BuildLArRecoND() {
     RunWithError mkdir build
     RunWithError cd build
     RunWithError cmake $COMMON_CMAKE_FLAGS \
-        -DPANDORA_MONITORING=ON \
+        -DPANDORA_MONITORING=OFF \
+        -DCMAKE_MODULE_PATH="$PANDORA_PROJECT_DIR/PandoraPFA/cmakemodules;$ROOTSYS/share/root/cmake"\
         -DPandoraSDK_DIR=$PANDORA_PROJECT_DIR/PandoraSDK/build/install/lib/cmake/PandoraSDK \
-        -DPandoraMonitoring_DIR=$PANDORA_PROJECT_DIR/PandoraMonitoring/build/install/lib/cmake/PandoraMonitoring \
         -DLArContent_DIR=$PANDORA_PROJECT_DIR/LArContent/build/install/lib/cmake/LArContent \
         "$@" ..
     RunWithError $MAKE_COMMAND

@@ -21,7 +21,7 @@ fi
 # Build the Pandora packages
 BuildPandoraPFA
 BuildPandoraSDK
-BuildPandoraMonitoring
+# BuildPandoraMonitoring
 
 # AL9 Specific: Find Torch via spack and set the Torch_DIR flag for cmake
 TORCH_PREFIX=$(spack location -i py-torch@1.13.1/dicc4vw)
