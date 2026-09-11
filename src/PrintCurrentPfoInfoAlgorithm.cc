@@ -201,12 +201,14 @@ void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *const 
         auto map = hit->GetMCParticleWeightMap();
         Uid mc_max_contrib = 0;
         float max_contrib = 0.;
+        int max_contrib_pdg = 0;
         for (auto const &[this_mc, contrib] : map)
         {
             if (contrib > max_contrib)
             {
                 mc_max_contrib = this_mc->GetUid();
                 max_contrib = contrib;
+                max_contrib_pdg = this_mc->GetParticleId();
             }
         }
         const long uid = reinterpret_cast<intptr_t>(mc_max_contrib);
@@ -217,10 +219,12 @@ void PrintCurrentPfoInfoAlgorithm::PrintPfoInfo(const ParticleFlowObject *const 
             << ", \"pfoListName\" : \"" << LIST_NAME << "\""
             << ", \"pfo\" : \"" << pPfo << "\""
             << ", \"mc_particle_uid\" : " << uid
+            << ", \"mc_particle_pdg\" : " << max_contrib_pdg
             << ", \"isClearCosmic\" : \"" << isClearCosmic << "\""
             << ", \"CaloHitX\" : " << hit->GetPositionVector().GetX()
             << ", \"CaloHitY\" : " << hit->GetPositionVector().GetY()
             << ", \"CaloHitZ\" : " << hit->GetPositionVector().GetZ()
+            << ", \"inputEnergy\" : " << hit->GetInputEnergy()
             << "},\n";
     }
 }
@@ -248,12 +252,14 @@ void PrintCurrentPfoInfoAlgorithm::PrintCaloHitsInfo(const CaloHitList *& pCaloH
 
     Uid mc_max_contrib = 0;
     float max_contrib = 0.;
+    int max_contrib_pdg = 0;
     
     for(auto const &[this_mc, contrib] : map)
     {
       if(max_contrib < contrib) {
             mc_max_contrib = this_mc->GetUid();
             max_contrib = contrib;
+            max_contrib_pdg = this_mc->GetParticleId();
           }
     }
     
@@ -268,9 +274,11 @@ void PrintCurrentPfoInfoAlgorithm::PrintCaloHitsInfo(const CaloHitList *& pCaloH
             << ", \"CaloHitType\" : " << "\""<< HitsName << "\""
             // << ", \"CaloHit\" : " << "\""<< pCaloHit << "\""
             << ", \"mc_particle_uid\" : " << uid
+            << ", \"mc_particle_pdg\" : " << max_contrib_pdg
             << ", \"CaloHitX\" : " << pCaloHit->GetPositionVector().GetX() 
             << ", \"CaloHitY\" : " << pCaloHit->GetPositionVector().GetY()
             << ", \"CaloHitZ\" : " << pCaloHit->GetPositionVector().GetZ()
+            << ", \"inputEnergy\" : " << pCaloHit->GetInputEnergy()
             << "}, \n";
   }
 
