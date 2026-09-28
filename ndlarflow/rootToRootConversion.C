@@ -39,6 +39,7 @@ void rootToRootConversion(
     Float_t in_y[MaxDepthArray];
     Float_t in_z[MaxDepthArray];
     Float_t in_t0[MaxDepthArray];
+    Float_t in_t0_conf[MaxDepthArray];
     Float_t in_ts[MaxDepthArray];
     Float_t in_charge[MaxDepthArray];
     uint8_t in_io_group[MaxDepthArray];
@@ -113,6 +114,7 @@ void rootToRootConversion(
     tr->SetBranchAddress("y",&in_y);
     tr->SetBranchAddress("z",&in_z);
     tr->SetBranchAddress("t0",&in_t0);
+    tr->SetBranchAddress("t0_conf",&in_t0_conf);
     tr->SetBranchAddress("ts",&in_ts);
     tr->SetBranchAddress("io_group",&in_io_group);
     tr->SetBranchAddress("io_channel",&in_io_channel);
@@ -176,6 +178,7 @@ void rootToRootConversion(
     std::vector<float> y;
     std::vector<float> z;
     std::vector<float> t0;
+    std::vector<float> t0_conf;
     std::vector<float> ts;
     std::vector<uint8_t> io_group;
     std::vector<uint8_t> io_channel;
@@ -239,6 +242,7 @@ void rootToRootConversion(
     outgoingTree->Branch("y", &y);
     outgoingTree->Branch("z", &z);
     outgoingTree->Branch("t0", &t0);
+    outgoingTree->Branch("t0_conf", &t0_conf);
     outgoingTree->Branch("ts", &ts);
     outgoingTree->Branch("io_group", &io_group);
     outgoingTree->Branch("io_channel", &io_channel);
@@ -386,6 +390,7 @@ void rootToRootConversion(
             chip_id.clear();
             channel_id.clear();
 	    t0.clear();
+	    t0_conf.clear();
             ts.clear();
             E.clear();
             charge.clear();
@@ -457,6 +462,7 @@ void rootToRootConversion(
             y.push_back(in_y[idxHit]);
             z.push_back(in_z[idxHit]);
 	    t0.push_back(in_t0[idxHit]);
+	    t0_conf.push_back(in_t0_conf[idxHit]);
             ts.push_back(in_ts[idxHit]);
             io_group.push_back(in_io_group[idxHit]);
             io_channel.push_back(in_io_channel[idxHit]);

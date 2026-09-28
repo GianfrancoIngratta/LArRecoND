@@ -194,7 +194,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     FloatVector nuVtxXVect, nuVtxYVect, nuVtxZVect;
     // Cluster start, end, direction, PCA axis lengths and total hit energy
     FloatVector startXVect, startYVect, startZVect, endXVect, endYVect, endZVect;
-    FloatVector t0Vect;
+    FloatVector t0Vect;//, t0ConfVect;
     FloatVector dirXVect, dirYVect, dirZVect, centroidXVect, centroidYVect, centroidZVect;
     FloatVector primaryLVect, secondaryLVect, tertiaryLVect, energyVect;
     // Best matched MC info
@@ -513,6 +513,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endY", &endYVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endZ", &endZVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "t0", &t0Vect));
+    // PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "t0_conf", &t0ConfVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "dirX", &dirXVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "dirY", &dirYVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "dirZ", &dirZVect));
