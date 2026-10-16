@@ -120,11 +120,9 @@ BuildLArContent() {
     fi
 
     RunWithError cd $PANDORA_PROJECT_DIR
-    # RunWithError git clone https://github.com/PandoraPFA/LArContent.git
-    RunWithError git clone https://github.com/GianfrancoIngratta/LArContent.git # fork for rockmu tagging
+    RunWithError git clone https://github.com/PandoraPFA/LArContent.git
     RunWithError cd LArContent
-    # RunWithError git checkout $PANDORA_LAR_CONTENT_VERSION
-    RunWithError git checkout origin/feature/2x2_workshop_sept2026
+    RunWithError git checkout $PANDORA_LAR_CONTENT_VERSION
     RunWithError mkdir build
     RunWithError cd build
     RunWithError cmake $COMMON_CMAKE_FLAGS \
