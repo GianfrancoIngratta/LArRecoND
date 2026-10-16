@@ -217,7 +217,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     // The hit vector entries follow the order PFO1[n3DHits1], PFO2[n3DHits2], PFO3[n3DHits3] etc.
     // The sliceId & clusterId vectors keep track of where a given hit comes from
     IntVector recoHitIdVect, recoHitSliceIdVect, recoHitClusterIdVect;
-    FloatVector recoHitXVect, recoHitYVect, recoHitZVect, recoHitEVect, recoHitT0Vect;
+    FloatVector recoHitXVect, recoHitYVect, recoHitZVect, recoHitEVect, recoHitT0Vect, recoHitMaxContribVect, recoHitMaxContribPDGVect, recoHitParentPDGVect, recoHitParentUidVect;
 
     // Get the list of root MCParticles for the MC truth matching
     MCParticleList rootMCParticles;
@@ -405,6 +405,51 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                         recoHitZVect.emplace_back(hitPos.GetZ());
                         recoHitEVect.emplace_back(hitE);
 			recoHitT0Vect.emplace_back(pCalo3DHit->GetTime());
+
+                        // find the mc particle that maximally constribuited to that hit
+			const MCParticle *maxContrib = nullptr;
+                        float max_contrib = 0.;
+
+                        auto map = pCalo3DHit->GetMCParticleWeightMap();
+
+                        for(auto const &[this_mc, contrib] : map)
+                        {
+                          if(max_contrib < contrib) {
+			    maxContrib = this_mc;
+                            max_contrib = contrib;
+                          }
+                        }
+
+                        long max_contrib_uid = 0;
+                        int max_contrib_pdg = 0;
+                        long parent_uid = 0;
+                        int parent_pdg=0;
+
+                        if(maxContrib)
+                        {
+                          max_contrib_uid = reinterpret_cast<intptr_t>(maxContrib->GetUid());
+                          max_contrib_pdg = maxContrib->GetParticleId();
+
+                          const MCParticleList &parents = maxContrib->GetParentList();
+                          if (!parents.empty())
+                          {
+                              // int parent_num = 0;
+                              // std::cout << "size parents " << parents.size() << "\n";
+                              // for (auto const parent : parents){
+                              //   std::cout << "parent number " << parent_num << ", pdg " << parent->GetParticleId() << "\n";
+                              //   parent_num++;
+                              // }
+                              const MCParticle *pParent = parents.front();
+                              parent_uid = reinterpret_cast<intptr_t>(pParent->GetUid());
+                              parent_pdg = pParent->GetParticleId();
+                          }
+                        }
+                        // std::cout << "------------------\n";
+
+                        recoHitMaxContribVect.emplace_back(max_contrib_uid);
+                        recoHitMaxContribPDGVect.emplace_back(max_contrib_pdg);
+                        recoHitParentPDGVect.emplace_back(parent_pdg);
+                        recoHitParentUidVect.emplace_back(parent_uid);
                     }
                 }
 
@@ -534,6 +579,10 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
         PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "recoHitZ", &recoHitZVect));
         PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "recoHitE", &recoHitEVect));
 	PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "recoHitT0", &recoHitT0Vect));
+	PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "recoHitMaxContrib", &recoHitMaxContribVect));
+	PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "recoHitMaxContribPDG", &recoHitMaxContribPDGVect));
+	PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "recoHitParentUid", &recoHitParentUidVect));
+	PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "recoHitParentPDG", &recoHitParentPDGVect));
     }
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "gotMatch", &matchVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcPDG", &mcPDGVect));
