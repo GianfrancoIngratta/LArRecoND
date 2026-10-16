@@ -262,10 +262,10 @@
         <PfoListNames>ShowerParticles3D</PfoListNames>
         <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames>
     </algorithm>
-    <algorithm type = "LArConeClusterMopUp">
-        <PfoListNames>ShowerParticles3D</PfoListNames>
-        <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames>
-    </algorithm>
+    <!-- <algorithm type = "LArConeClusterMopUp"> -->
+    <!--     <PfoListNames>ShowerParticles3D</PfoListNames> -->
+    <!--     <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames> -->
+    <!-- </algorithm> -->
     <algorithm type = "LArNearbyClusterMopUp">
         <PfoListNames>ShowerParticles3D</PfoListNames>
         <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames>
@@ -289,14 +289,14 @@
     </algorithm>
 
     <!-- ThreeDMopUpAlgorithms -->
-    <algorithm type = "LArSlidingConePfoMopUp">
-        <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames>
-        <DaughterListNames>ClustersU ClustersV ClustersW TrackClusters3D ShowerClusters3D</DaughterListNames>
-    </algorithm>
-    <algorithm type = "LArSlidingConeClusterMopUp">
-        <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames>
-        <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames>
-    </algorithm>
+    <!-- <algorithm type = "LArSlidingConePfoMopUp"> -->
+    <!--     <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames> -->
+    <!--     <DaughterListNames>ClustersU ClustersV ClustersW TrackClusters3D ShowerClusters3D</DaughterListNames> -->
+    <!-- </algorithm> -->
+    <!-- <algorithm type = "LArSlidingConeClusterMopUp"> -->
+    <!--     <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames> -->
+    <!--     <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames> -->
+    <!-- </algorithm> -->
     <algorithm type = "LArIsolatedClusterMopUp">
         <PfoListNames>TrackParticles3D ShowerParticles3D</PfoListNames>
         <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames>
@@ -356,14 +356,14 @@
                 <PfoListNames>ShowerParticles3D</PfoListNames>
                 <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames>
             </algorithm>
-            <algorithm type = "LArSlidingConePfoMopUp">
-                <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames>
-                <DaughterListNames>ClustersU ClustersV ClustersW TrackClusters3D ShowerClusters3D</DaughterListNames>
-            </algorithm>
-            <algorithm type = "LArSlidingConeClusterMopUp">
-                <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames>
-                <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames>
-            </algorithm>
+            <!-- <algorithm type = "LArSlidingConePfoMopUp"> -->
+            <!--     <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames> -->
+            <!--     <DaughterListNames>ClustersU ClustersV ClustersW TrackClusters3D ShowerClusters3D</DaughterListNames> -->
+            <!-- </algorithm> -->
+            <!-- <algorithm type = "LArSlidingConeClusterMopUp"> -->
+            <!--     <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames> -->
+            <!--     <DaughterListNames>ClustersU ClustersV ClustersW</DaughterListNames> -->
+            <!-- </algorithm> -->
             <algorithm type = "LArPfoHitCleaning">
                 <PfoListNames>TrackParticles3D ShowerParticles3D</PfoListNames>
                 <ClusterListNames>TrackClusters3D ShowerClusters3D</ClusterListNames>
